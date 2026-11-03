@@ -23,12 +23,12 @@
   <dialog id="detailDialog"><div class="dialog-inner"><div class="dialog-head"><h2 id="detailTitle">Chi tiết lượt</h2><button id="closeDialog" type="button" class="small-btn">Đóng</button></div><div class="dialog-content"><p><strong>Scramble:</strong><br><span id="detailScramble"></span></p><p><strong>Thời gian:</strong><br><span id="detailTime"></span></p></div></div></dialog>
   <dialog id="playerHistoryDialog" class="history-dialog"><div class="dialog-inner"><div class="dialog-head"><h2 id="playerHistoryTitle">Lịch sử solve</h2><button id="closePlayerHistory" type="button" class="small-btn">Đóng</button></div><p id="playerHistoryStatus" class="profile-help">Đang tải lịch sử...</p><div class="player-history-scroll"><table><thead><tr><th>#</th><th>Thời gian</th><th>Ngày</th><th>Scramble</th></tr></thead><tbody id="playerHistoryRows"></tbody></table></div></div></dialog>
   <dialog id="profileDialog"><form id="profileForm" class="dialog-inner"><div class="dialog-head"><h2>Đặt tên người chơi</h2><button id="closeProfile" type="button" class="small-btn">Đóng</button></div><p class="profile-help">Tên này hiển thị trên timer và bảng xếp hạng. Email đăng nhập không thay đổi.</p><label class="field"><span>Tên hiển thị</span><input id="profileName" type="text" maxlength="24" minlength="2" autocomplete="nickname" placeholder="Nhập tên hiển thị" required></label><div id="profileMessage" class="status-line" role="status" aria-live="polite"></div><div class="dialog-actions"><button id="saveProfile" type="submit" class="btn primary">Lưu tên</button></div></form></dialog>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.10/dist/umd/supabase.js"></script>
   <script type="module">
-    import { randomScrambleForEvent } from "https://cdn.jsdelivr.net/npm/cubing@0.53.0/+esm";
+    import { randomScrambleForEvent } from "https://esm.sh/cubing@0.53.0";
 
     (()=>{"use strict";
-      const SUPABASE_URL="https://bmglojinjtodeczsgjxh.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep",client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),TABLE="rubik_scores",PLUS_TWO_MS=15000,DNF_MS=17000;
+      const SUPABASE_URL="https://bmglojinjtodeczsgjxh.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uQTuep",client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),TABLE="rubik_scores",PLUS_TWO_MS=15000,DNF_MS=17000;
       const CUBE_OPTIONS=[
         {id:"222",label:"2×2",name:"2x2"},
         {id:"333",label:"3×3",name:"3x3"},
