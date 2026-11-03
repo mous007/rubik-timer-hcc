@@ -6,260 +6,164 @@
   <title>Rubik Timer</title>
   <style>
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-      background: #111827;
-      color: #f9fafb;
+      margin: 0; min-height: 100vh; padding: 24px;
+      background: #111827; color: #f9fafb;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    .layout {
-      width: min(1150px, 100%);
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(270px, 360px) minmax(0, 1fr);
-      gap: 20px;
-      align-items: start;
-    }
-
-    .sidebar { display: grid; gap: 16px; }
-
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
     .panel {
-      padding: 20px;
-      border: 1px solid #374151;
-      border-radius: 14px;
-      background: #1f2937;
+      padding: 20px; border: 1px solid #374151;
+      border-radius: 14px; background: #1f2937;
     }
-
+    #authScreen { min-height: calc(100vh - 48px); display: grid; place-items: center; }
+    .auth-card { width: min(420px, 100%); }
     h1 { margin: 0 0 20px; text-align: center; }
     h2 { margin: 0 0 14px; font-size: 1.1rem; }
-
-    .name-field {
-      display: block;
-      margin-bottom: 20px;
-      text-align: left;
+    .auth-card p { color: #9ca3af; line-height: 1.5; }
+    .field { display: block; margin: 14px 0; text-align: left; }
+    .field span { display: block; margin-bottom: 7px; color: #d1d5db; font-size: .9rem; }
+    .field input {
+      width: 100%; padding: 10px 12px; border: 1px solid #4b5563;
+      border-radius: 8px; outline: none; background: #111827; color: #f9fafb;
     }
-
-    .name-field span {
-      display: block;
-      margin-bottom: 7px;
-      color: #d1d5db;
-      font-size: 0.9rem;
+    .field input:focus { border-color: #60a5fa; }
+    .auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .primary, .secondary, .detail-button, .close-button {
+      padding: 9px 12px; border: 1px solid #4b5563; border-radius: 8px;
+      background: #111827; color: #f9fafb;
     }
-
-    #solverName {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #4b5563;
-      border-radius: 8px;
-      outline: none;
-      background: #111827;
-      color: #f9fafb;
+    .primary { border-color: #2563eb; background: #2563eb; }
+    .primary:hover { background: #1d4ed8; }
+    .secondary:hover, .detail-button:hover, .close-button:hover { background: #374151; }
+    #authMessage { min-height: 1.5em; color: #facc15; font-size: .9rem; overflow-wrap: anywhere; }
+    .topbar { width: min(1150px, 100%); margin: 0 auto 18px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .topbar h1 { margin: 0; }
+    .account { display: flex; align-items: center; gap: 12px; color: #d1d5db; }
+    .layout {
+      width: min(1150px, 100%); margin: 0 auto; display: grid;
+      grid-template-columns: minmax(270px, 360px) minmax(0, 1fr); gap: 20px; align-items: start;
     }
-
-    #solverName:focus { border-color: #60a5fa; }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .stat {
-      padding: 12px;
-      border: 1px solid #374151;
-      border-radius: 9px;
-      background: #111827;
-    }
-
-    .stat-label {
-      display: block;
-      margin-bottom: 6px;
-      color: #9ca3af;
-      font-size: 0.84rem;
-    }
-
-    .stat-value {
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stats-note {
-      margin: 12px 0 0;
-      color: #9ca3af;
-      font-size: 0.78rem;
-      line-height: 1.5;
-    }
-
+    .sidebar { display: grid; gap: 16px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding: 12px; border: 1px solid #374151; border-radius: 9px; background: #111827; }
+    .stat-label { display: block; margin-bottom: 6px; color: #9ca3af; font-size: .84rem; }
+    .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stats-note { margin: 12px 0 0; color: #9ca3af; font-size: .78rem; line-height: 1.5; }
     .table-wrap { max-height: 420px; overflow: auto; }
-
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 10px 7px; border-bottom: 1px solid #374151; }
-    th {
-      position: sticky;
-      top: 0;
-      background: #1f2937;
-      color: #9ca3af;
-      font-size: 0.82rem;
-    }
-
+    th { position: sticky; top: 0; background: #1f2937; color: #9ca3af; font-size: .82rem; }
     th:first-child, td:first-child { width: 48px; text-align: center; }
     th:last-child, td:last-child { width: 60px; text-align: center; }
     tbody tr:last-child td { border-bottom: 0; }
-
-    .empty {
-      padding: 18px 8px;
-      color: #9ca3af;
-      text-align: center;
-    }
-
-    .detail-button, .close-button {
-      padding: 5px 9px;
-      border: 1px solid #4b5563;
-      border-radius: 6px;
-      background: #111827;
-      color: #f9fafb;
-      cursor: pointer;
-    }
-
+    .empty { padding: 18px 8px; color: #9ca3af; text-align: center; }
+    .detail-button { padding: 5px 9px; border-radius: 6px; font-size: .85rem; }
     .timer-panel { min-width: 0; text-align: center; }
-
-    .scramble-label {
-      margin-bottom: 8px;
-      color: #9ca3af;
-      font-size: 0.82rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    #scramble {
-      min-height: 3.5em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #e5e7eb;
-      font-size: clamp(1rem, 2.5vw, 1.35rem);
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-
-    #timer {
-      margin: 34px 0 8px;
-      font-size: clamp(4rem, 15vw, 8rem);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.06em;
-      transition: transform 120ms ease, color 120ms ease;
-    }
-
+    .name-field { margin: 0 auto 20px; max-width: 420px; }
+    .scramble-label { margin-bottom: 8px; color: #9ca3af; font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; }
+    #scramble { min-height: 3.5em; display: flex; align-items: center; justify-content: center; color: #e5e7eb; font-size: clamp(1rem, 2.5vw, 1.35rem); line-height: 1.7; overflow-wrap: anywhere; }
+    #timer { margin: 34px 0 8px; font-size: clamp(4rem, 15vw, 8rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.06em; transition: transform 120ms ease, color 120ms ease; }
     #timer.armed { transform: scale(1.12); color: #4ade80; }
     #status { min-height: 1.7em; color: #9ca3af; }
     .warning { color: #facc15 !important; }
     .dnf { color: #f87171 !important; }
-
-    dialog {
-      width: min(520px, calc(100% - 32px));
-      padding: 0;
-      border: 1px solid #4b5563;
-      border-radius: 14px;
-      background: #1f2937;
-      color: #f9fafb;
-    }
-
+    dialog { width: min(520px, calc(100% - 32px)); padding: 0; border: 1px solid #4b5563; border-radius: 14px; background: #1f2937; color: #f9fafb; }
     dialog::backdrop { background: rgb(0 0 0 / 65%); }
-
     .dialog-content { padding: 22px; }
-    .dialog-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
+    .dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
     .dialog-header h2 { margin: 0; }
     .detail-label { display: block; margin-bottom: 6px; color: #9ca3af; }
     #detailScramble { line-height: 1.7; overflow-wrap: anywhere; }
     #detailTime { font-weight: 700; font-variant-numeric: tabular-nums; }
-
     @media (max-width: 760px) {
       body { padding: 14px; }
       .layout { grid-template-columns: 1fr; }
       .timer-panel { grid-row: 1; }
       .sidebar { grid-row: 2; }
+      .topbar { align-items: flex-start; }
+      .account { flex-direction: column; align-items: flex-end; gap: 6px; }
     }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <section class="panel">
-        <h2>Thành tích của người giải</h2>
-        <div class="stats-grid">
-          <div class="stat"><span class="stat-label">Best</span><span id="best" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">Arg</span><span id="arg" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">ao5</span><span id="ao5" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">ao12</span><span id="ao12" class="stat-value">--</span></div>
-        </div>
-        <p class="stats-note">
-          Arg là trung bình các lượt không DNF. ao5/ao12 cần đủ lượt và bỏ
-          một lượt tốt nhất, một lượt tệ nhất.
-        </p>
-      </section>
-
-      <section class="panel">
-        <h2>Lịch sử của người giải</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>STT</th><th>Thành tích</th><th></th></tr>
-            </thead>
-            <tbody id="results"></tbody>
-          </table>
-        </div>
-      </section>
-    </aside>
-
-    <main class="panel timer-panel">
+  <section id="authScreen">
+    <form id="authForm" class="panel auth-card">
       <h1>Rubik Timer</h1>
+      <p>Đăng nhập hoặc tạo tài khoản bằng email để lưu thành tích của bạn.</p>
+      <label class="field"><span>Email</span><input id="emailInput" type="email" autocomplete="email" required /></label>
+      <label class="field"><span>Mật khẩu</span><input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required /></label>
+      <div class="auth-actions">
+        <button id="signInButton" class="primary" type="button">Đăng nhập</button>
+        <button id="signUpButton" class="secondary" type="button">Tạo tài khoản</button>
+      </div>
+      <p id="authMessage" role="status"></p>
+    </form>
+  </section>
 
-      <label class="name-field">
-        <span>Tên người giải</span>
-        <input id="solverName" type="text" maxlength="30" placeholder="Nhập tên của bạn" />
-      </label>
-
-      <div class="scramble-label">Scramble 3×3</div>
-      <div id="scramble" aria-live="polite"></div>
-      <div id="timer" aria-live="polite">0.00</div>
-      <div id="status"></div>
-    </main>
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <h1>Rubik Timer</h1>
+      <div class="account"><span id="signedInEmail"></span><button id="signOutButton" class="secondary" type="button">Đăng xuất</button></div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="panel">
+          <h2>Thành tích của bạn</h2>
+          <div class="stats-grid">
+            <div class="stat"><span class="stat-label">Best</span><span id="best" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">Arg</span><span id="arg" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">ao5</span><span id="ao5" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">ao12</span><span id="ao12" class="stat-value">--</span></div>
+          </div>
+          <p class="stats-note">Arg tính trung bình các lượt không DNF. ao5/ao12 cần đủ lượt, bỏ một lượt tốt nhất và một lượt tệ nhất.</p>
+        </section>
+        <section class="panel">
+          <h2>Lịch sử giải</h2>
+          <div class="table-wrap"><table><thead><tr><th>STT</th><th>Thành tích</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
+        </section>
+      </aside>
+      <main class="panel timer-panel">
+        <h1>Rubik Timer</h1>
+        <label class="field name-field"><span>Tên người giải</span><input id="solverName" type="text" maxlength="30" placeholder="Nhập tên của bạn" /></label>
+        <div class="scramble-label">Scramble 3×3</div>
+        <div id="scramble" aria-live="polite"></div>
+        <div id="timer" aria-live="polite">0.00</div>
+        <div id="status" role="status"></div>
+      </main>
+    </div>
   </div>
 
   <dialog id="detailDialog">
     <div class="dialog-content">
-      <div class="dialog-header">
-        <h2 id="detailTitle">Chi tiết lượt giải</h2>
-        <button id="closeDialog" class="close-button" type="button">Đóng</button>
-      </div>
+      <div class="dialog-header"><h2 id="detailTitle">Chi tiết lượt giải</h2><button id="closeDialog" class="close-button" type="button">Đóng</button></div>
       <p><span class="detail-label">Scramble</span><span id="detailScramble"></span></p>
       <p><span class="detail-label">Thời gian thực hiện</span><span id="detailTime"></span></p>
     </div>
   </dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const HISTORY_KEY = "rubikTimerHistory.v1";
-    const GLOBAL_KEY = "rubikTimerGlobalResults.v1";
+    const SUPABASE_URL = "https://bmglojinjtodeczsgjxh.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const TABLE = "rubik_scores";
     const INSPECTION_PLUS_TWO_MS = 15_000;
     const INSPECTION_DNF_MS = 17_000;
     const SCRAMBLE_LENGTH = 25;
-
     const faces = ["R", "L", "U", "D", "F", "B"];
     const suffixes = ["", "'", "2"];
     const axisByFace = { R: "x", L: "x", U: "y", D: "y", F: "z", B: "z" };
 
+    const authScreen = document.getElementById("authScreen");
+    const authForm = document.getElementById("authForm");
+    const authMessage = document.getElementById("authMessage");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const app = document.getElementById("app");
     const nameInput = document.getElementById("solverName");
     const timerEl = document.getElementById("timer");
     const statusEl = document.getElementById("status");
@@ -267,6 +171,8 @@
     const resultsEl = document.getElementById("results");
     const detailDialog = document.getElementById("detailDialog");
 
+    let currentUser = null;
+    let records = [];
     let phase = "idle";
     let spaceDown = false;
     let inspectionStartedAt = 0;
@@ -275,59 +181,97 @@
     let currentScramble = "";
     let intervalId = null;
 
-    function readStorage(key) {
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(value) ? value : [];
-      } catch {
-        return [];
+    function setAuthMessage(text, isError = false) {
+      authMessage.textContent = text;
+      authMessage.style.color = isError ? "#fca5a5" : "#facc15";
+    }
+
+    async function signUp() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      if (!email || !password) return setAuthMessage("Nhập email và mật khẩu trước.", true);
+      setAuthMessage("Đang tạo tài khoản...");
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) return setAuthMessage(error.message, true);
+      if (data.session) {
+        setAuthMessage("Tạo tài khoản thành công.");
+        await activateSession(data.session);
+      } else {
+        setAuthMessage("Đăng ký thành công. Hãy xác nhận email trong hộp thư rồi đăng nhập.");
       }
     }
 
-    function writeStorage(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch {
-        return false;
+    async function signIn() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      if (!email || !password) return setAuthMessage("Nhập email và mật khẩu trước.", true);
+      setAuthMessage("Đang đăng nhập...");
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) return setAuthMessage(error.message, true);
+      setAuthMessage("");
+      await activateSession(data.session);
+    }
+
+    async function signOut() {
+      clearTimer();
+      phase = "idle";
+      spaceDown = false;
+      const { error } = await db.auth.signOut();
+      if (error) setStatus(error.message, "warning");
+      currentUser = null;
+      records = [];
+      app.classList.add("hidden");
+      authScreen.classList.remove("hidden");
+      passwordInput.value = "";
+      setAuthMessage("Đã đăng xuất.");
+    }
+
+    async function activateSession(session) {
+      if (!session?.user) return;
+      currentUser = session.user;
+      document.getElementById("signedInEmail").textContent = currentUser.email || "Đã đăng nhập";
+      authScreen.classList.add("hidden");
+      app.classList.remove("hidden");
+      const savedName = localStorage.getItem(`rubikName:${currentUser.id}`) || currentUser.user_metadata?.display_name || "";
+      nameInput.value = savedName;
+      await loadRecords();
+      if (!currentScramble) {
+        currentScramble = generateScramble();
+        scrambleEl.textContent = currentScramble;
       }
     }
 
-    function getHistory() {
-      return readStorage(HISTORY_KEY);
+    async function loadRecords() {
+      if (!currentUser) return;
+      setStatus("Đang tải thành tích...");
+      const { data, error } = await db.from(TABLE)
+        .select("id, player_name, scramble, raw_ms, penalty, created_at")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: true });
+      if (error) {
+        setStatus(`Không tải được thành tích: ${error.message}`, "warning");
+        records = [];
+      } else {
+        records = data || [];
+        setStatus("");
+      }
+      renderResults();
+      renderStats();
     }
 
-    function getCurrentName() {
-      return nameInput.value.trim();
-    }
-
-    function getPersonRecords() {
-      const name = getCurrentName().toLocaleLowerCase();
-      if (!name) return [];
-      return getHistory().filter(
-        record => (record.name || "").toLocaleLowerCase() === name
-      );
-    }
-
-    function formatTime(ms) {
-      return (ms / 1000).toFixed(2);
-    }
-
-    function resultText(record) {
-      if (record.penalty === "dnf") return `${formatTime(record.rawMs)} (DNF)`;
-      if (record.penalty === "plus2") return `${formatTime(record.rawMs + 2000)} (+2)`;
-      return formatTime(record.rawMs);
-    }
-
+    function formatTime(ms) { return (ms / 1000).toFixed(2); }
     function effectiveTime(record) {
       if (record.penalty === "dnf") return Infinity;
-      return record.rawMs + (record.penalty === "plus2" ? 2000 : 0);
+      return Number(record.raw_ms) + (record.penalty === "plus2" ? 2000 : 0);
+    }
+    function resultText(record) {
+      if (record.penalty === "dnf") return `${formatTime(record.raw_ms)} (DNF)`;
+      if (record.penalty === "plus2") return `${formatTime(Number(record.raw_ms) + 2000)} (+2)`;
+      return formatTime(Number(record.raw_ms));
     }
 
     function renderResults() {
-      const records = getPersonRecords();
       resultsEl.replaceChildren();
-
       if (!records.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
@@ -338,65 +282,47 @@
         resultsEl.appendChild(row);
         return;
       }
-
       [...records].reverse().forEach((record, index) => {
-        const solveNumber = records.length - index;
+        const number = records.length - index;
         const row = document.createElement("tr");
-        const number = document.createElement("td");
-        const result = document.createElement("td");
-        const action = document.createElement("td");
+        const numberCell = document.createElement("td");
+        const resultCell = document.createElement("td");
+        const actionCell = document.createElement("td");
         const button = document.createElement("button");
-
-        number.textContent = solveNumber;
-        result.textContent = resultText(record);
+        numberCell.textContent = String(number);
+        resultCell.textContent = resultText(record);
         button.type = "button";
         button.className = "detail-button";
         button.textContent = "Xem";
-        button.addEventListener("click", () => showDetails(record, solveNumber));
-
-        action.appendChild(button);
-        row.append(number, result, action);
+        button.addEventListener("click", () => showDetails(record, number));
+        actionCell.appendChild(button);
+        row.append(numberCell, resultCell, actionCell);
         resultsEl.appendChild(row);
       });
     }
 
-    function average(values) {
-      return values.reduce((sum, value) => sum + value, 0) / values.length;
-    }
-
-    function trimmedAverage(records, count) {
+    function average(values) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
+    function trimmedAverage(count) {
       if (records.length < count) return "--";
-
       const times = records.slice(-count).map(effectiveTime).sort((a, b) => a - b);
       const trimmed = times.slice(1, -1);
-
       if (trimmed.some(value => !Number.isFinite(value))) return "DNF";
       return formatTime(average(trimmed));
     }
-
     function renderStats() {
-      const records = getPersonRecords();
       const valid = records.map(effectiveTime).filter(Number.isFinite);
-
-      document.getElementById("best").textContent =
-        valid.length ? formatTime(Math.min(...valid)) : "--";
-      document.getElementById("arg").textContent =
-        valid.length ? formatTime(average(valid)) : "--";
-      document.getElementById("ao5").textContent = trimmedAverage(records, 5);
-      document.getElementById("ao12").textContent = trimmedAverage(records, 12);
+      document.getElementById("best").textContent = valid.length ? formatTime(Math.min(...valid)) : "--";
+      document.getElementById("arg").textContent = valid.length ? formatTime(average(valid)) : "--";
+      document.getElementById("ao5").textContent = trimmedAverage(5);
+      document.getElementById("ao12").textContent = trimmedAverage(12);
     }
 
     function showDetails(record, number) {
       document.getElementById("detailTitle").textContent = `Chi tiết lượt ${number}`;
       document.getElementById("detailScramble").textContent = record.scramble;
-      let text = `${formatTime(record.rawMs)} giây`;
-
-      if (record.penalty === "plus2") {
-        text += ` + 2.00 giây phạt = ${formatTime(record.rawMs + 2000)} giây`;
-      } else if (record.penalty === "dnf") {
-        text += " (DNF)";
-      }
-
+      let text = `${formatTime(Number(record.raw_ms))} giây`;
+      if (record.penalty === "plus2") text += ` + 2.00 giây phạt = ${formatTime(Number(record.raw_ms) + 2000)} giây`;
+      if (record.penalty === "dnf") text += " (DNF)";
       document.getElementById("detailTime").textContent = text;
       detailDialog.showModal();
     }
@@ -404,16 +330,13 @@
     function generateScramble() {
       const moves = [];
       let previousAxis = "";
-
       while (moves.length < SCRAMBLE_LENGTH) {
         const face = faces[Math.floor(Math.random() * faces.length)];
         const axis = axisByFace[face];
         if (axis === previousAxis) continue;
-
         moves.push(face + suffixes[Math.floor(Math.random() * suffixes.length)]);
         previousAxis = axis;
       }
-
       return moves.join(" ");
     }
 
@@ -421,7 +344,6 @@
       statusEl.textContent = message;
       statusEl.className = className;
     }
-
     function clearTimer() {
       if (intervalId !== null) {
         clearInterval(intervalId);
@@ -430,13 +352,14 @@
     }
 
     function startInspection() {
-      if (!getCurrentName()) {
-        setStatus("Hãy nhập tên người giải trước.");
+      if (!currentUser) return setStatus("Hãy đăng nhập trước.", "warning");
+      if (!nameInput.value.trim()) {
+        setStatus("Hãy nhập tên người giải trước.", "warning");
         nameInput.focus();
         phase = "idle";
         return;
       }
-
+      localStorage.setItem(`rubikName:${currentUser.id}`, nameInput.value.trim());
       clearTimer();
       phase = "inspection";
       inspectionPenalty = "";
@@ -446,16 +369,13 @@
       timerEl.classList.remove("armed");
       timerEl.textContent = "15";
       setStatus("");
-
       updateInspection();
       intervalId = setInterval(updateInspection, 25);
     }
 
     function updateInspection() {
       if (phase !== "inspection" && phase !== "armed") return;
-
       const elapsed = performance.now() - inspectionStartedAt;
-
       if (elapsed >= INSPECTION_DNF_MS) {
         timerEl.textContent = "DNF";
         setStatus(phase === "armed" ? "Thả Space để bắt đầu — lượt này là DNF" : "", "dnf");
@@ -463,55 +383,105 @@
         timerEl.textContent = "+2";
         setStatus(phase === "armed" ? "Thả Space để bắt đầu — lượt này bị +2" : "", "warning");
       } else {
-        timerEl.textContent = String(Math.ceil((INSPECTION_PLUS_TWO_MS - elapsed) / 1000));
+        const seconds = Math.max(0, Math.ceil((INSPECTION_PLUS_TWO_MS - elapsed) / 1000) - 1);
+        timerEl.textContent = String(seconds);
         if (phase === "armed") setStatus("Thả Space để bắt đầu");
       }
     }
 
     function startSolve() {
+      if (!currentUser) return;
       const elapsed = performance.now() - inspectionStartedAt;
-      inspectionPenalty = elapsed >= INSPECTION_DNF_MS
-        ? "dnf"
-        : elapsed >= INSPECTION_PLUS_TWO_MS ? "plus2" : "";
-
+      inspectionPenalty = elapsed >= INSPECTION_DNF_MS ? "dnf" : elapsed >= INSPECTION_PLUS_TWO_MS ? "plus2" : "";
       phase = "running";
       solveStartedAt = performance.now();
       timerEl.classList.remove("armed");
-      setStatus(inspectionPenalty === "dnf"
-        ? "Đang giải — kết quả lượt này sẽ là DNF"
-        : inspectionPenalty === "plus2" ? "Đang giải — lượt này bị +2" : "",
-        inspectionPenalty === "dnf" ? "dnf" : inspectionPenalty === "plus2" ? "warning" : ""
-      );
-
+      setStatus(inspectionPenalty === "dnf" ? "Đang giải — kết quả lượt này sẽ là DNF" : inspectionPenalty === "plus2" ? "Đang giải — lượt này bị +2" : "", inspectionPenalty === "dnf" ? "dnf" : inspectionPenalty === "plus2" ? "warning" : "");
       clearTimer();
       intervalId = setInterval(() => {
-        if (phase === "running") {
-          timerEl.textContent = formatTime(performance.now() - solveStartedAt);
-        }
+        if (phase === "running") timerEl.textContent = formatTime(performance.now() - solveStartedAt);
       }, 10);
     }
 
-    function stopSolve() {
-      const rawMs = performance.now() - solveStartedAt;
-      const name = getCurrentName();
+    async function stopSolve() {
+      if (phase !== "running" || !currentUser) return;
+      const rawMs = Math.round(performance.now() - solveStartedAt);
       const record = {
-        name,
-        rawMs,
-        penalty: inspectionPenalty,
+        user_id: currentUser.id,
+        player_name: nameInput.value.trim(),
         scramble: currentScramble,
-        createdAt: new Date().toISOString()
+        raw_ms: rawMs,
+        penalty: inspectionPenalty,
+        created_at: new Date().toISOString()
       };
-
       clearTimer();
-      phase = "stopped";
+      phase = "saving";
       timerEl.classList.remove("armed");
+      timerEl.textContent = inspectionPenalty === "dnf" ? `${formatTime(rawMs)} (DNF)` : inspectionPenalty === "plus2" ? `${formatTime(rawMs + 2000)} (+2)` : formatTime(rawMs);
+      setStatus("Đang lưu kết quả...");
+      const { data, error } = await db.from(TABLE).insert(record).select("id, player_name, scramble, raw_ms, penalty, created_at").single();
+      if (error) {
+        phase = "stopped";
+        setStatus(`Không lưu được kết quả: ${error.message}`, "warning");
+        return;
+      }
+      records.push(data);
+      phase = "stopped";
+      setStatus(inspectionPenalty === "dnf" ? "Đã lưu — kết quả DNF" : inspectionPenalty === "plus2" ? "Đã lưu — kết quả +2" : "Đã lưu kết quả");
+      renderResults();
+      renderStats();
+    }
 
-      if (inspectionPenalty === "dnf") {
-        timerEl.textContent = `${formatTime(rawMs)} (DNF)`;
-        setStatus("Kết quả: DNF", "dnf");
-      } else if (inspectionPenalty === "plus2") {
-        timerEl.textContent = `${formatTime(rawMs + 2000)} (+2)`;
-        setStatus("Kết quả đã được cộng +2", "warning");
-      } else {
-        timer*
-
+    document.getElementById("signInButton").addEventListener("click", signIn);
+    document.getElementById("signUpButton").addEventListener("click", signUp);
+    authForm.addEventListener("submit", event => { event.preventDefault(); signIn(); });
+    document.getElementById("signOutButton").addEventListener("click", signOut);
+    nameInput.addEventListener("input", () => {
+      if (currentUser) localStorage.setItem(`rubikName:${currentUser.id}`, nameInput.value.trim());
+    });
+    document.getElementById("closeDialog").addEventListener("click", () => detailDialog.close());
+    detailDialog.addEventListener("click", event => { if (event.target === detailDialog) detailDialog.close(); });
+
+    document.addEventListener("keydown", event => {
+      if (detailDialog.open || event.code !== "Space" || app.classList.contains("hidden")) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) return;
+      event.preventDefault();
+      if (spaceDown || event.repeat) return;
+      spaceDown = true;
+      if (phase === "idle" || phase === "stopped") {
+        startInspection();
+      } else if (phase === "inspection") {
+        phase = "armed";
+        timerEl.classList.add("armed");
+        updateInspection();
+      } else if (phase === "running") {
+        stopSolve();
+      }
+    });
+
+    document.addEventListener("keyup", event => {
+      if (event.code !== "Space") return;
+      event.preventDefault();
+      spaceDown = false;
+      if (phase === "armed") startSolve();
+    });
+
+    window.addEventListener("blur", () => { spaceDown = false; });
+
+    (async function init() {
+      const { data, error } = await db.auth.getSession();
+      if (error) setAuthMessage(error.message, true);
+      if (data?.session) await activateSession(data.session);
+      db.auth.onAuthStateChange((_event, session) => {
+        if (!session) {
+          currentUser = null;
+          app.classList.add("hidden");
+          authScreen.classList.remove("hidden");
+        }
+      });
+      currentScramble = generateScramble();
+      scrambleEl.textContent = currentScramble;
+    })();
+  </script>
+</body>
+</html>
