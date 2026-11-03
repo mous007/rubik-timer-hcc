@@ -4,184 +4,331 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#10131c" />
-  <title>Rubik Timer — Auth Demo</title>
+  <title>Rubik Timer</title>
   <style>
     :root {
       color-scheme: dark;
       --bg: #10131c;
-      --panel: #191e2b;
-      --panel-2: #202738;
-      --line: #30394d;
-      --muted: #9ba7bd;
-      --text: #f4f6fb;
-      --blue: #6c8cff;
-      --green: #77e0a1;
-      --yellow: #f4ce69;
-      --red: #ff7f86;
+      --bg-2: #121a28;
+      --panel: #191f2d;
+      --panel-2: #1e2536;
+      --line: #2d374f;
+      --muted: #9ca8be;
+      --text: #f3f6fb;
+      --blue: #6f8cff;
+      --blue-2: #89a4ff;
+      --green: #6ce1a9;
+      --yellow: #f5d077;
+      --red: #ff868d;
+      --shadow: rgba(0, 0, 0, 0.22);
     }
 
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
     body {
       min-height: 100vh;
-      padding: 24px;
-      background: radial-gradient(ellipse at 75% -10%, #29375d 0, transparent 42%), var(--bg);
+      padding: 22px;
+      background: radial-gradient(ellipse at 75% -10%, #29375d 0, transparent 40%), var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     }
     button, input { font: inherit; }
     button { cursor: pointer; }
     .hidden { display: none !important; }
+
     .shell { max-width: 1120px; margin: 0 auto; }
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 16px; margin-bottom: 22px;
+    .topbar {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
     .brand { display: flex; align-items: center; gap: 12px; }
     .logo {
-      width: 42px; height: 42px; display: grid; place-items: center;
-      border-radius: 13px; background: linear-gradient(135deg, #7997ff, #8a6cff);
-      box-shadow: 0 8px 24px rgba(100, 126, 255, 0.35);
-      font-size: 23px;
-    }
-    h1 { margin: 0; font-size: 1.3rem; letter-spacing: -0.04em; }
-    .subbrand { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
-    .demo-badge {
-      border: 1px solid rgba(108, 140, 255, 0.35);
-      border-radius: 999px; background: rgba(108, 140, 255, 0.09);
-      color: #b9c8ff; padding: 7px 11px; font-size: 0.76rem; white-space: nowrap;
-    }
-    .auth-screen {
-      min-height: calc(100vh - 90px);
+      width: 42px; height: 42px; border-radius: 13px;
       display: grid; place-items: center;
+      background: linear-gradient(135deg, #7d99ff, #8e7cff);
+      box-shadow: 0 8px 24px rgba(125, 153, 255, 0.32);
+      font-size: 24px;
+    }
+    .brand-title { margin: 0; font-size: 1.2rem; letter-spacing: -0.04em; }
+    .brand-sub { color: var(--muted); font-size: 0.78rem; }
+    .badge {
+      border: 1px solid rgba(111, 140, 255, 0.32);
+      border-radius: 999px;
+      background: rgba(111, 140, 255, 0.08);
+      color: #bfd0ff;
+      padding: 7px 11px;
+      font-size: 0.74rem;
+      white-space: nowrap;
+    }
+
+    .auth-screen {
+      min-height: calc(100vh - 86px);
+      display: grid;
+      place-items: center;
     }
     .auth-card {
       width: min(440px, 100%);
-      background: linear-gradient(160deg, #1d2332, #171c28);
+      padding: 28px 24px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      padding: 28px 24px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+      background: linear-gradient(160deg, #1d2332, #171c28);
+      box-shadow: 0 16px 52px rgba(0,0,0,0.18);
     }
-    .auth-title { margin: 0 0 12px; text-align: center; }
-    .auth-copy { margin: 0 0 22px; color: var(--muted); line-height: 1.6; font-size: 0.95rem; }
+    .auth-card h2 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 2rem;
+      letter-spacing: -0.05em;
+    }
+    .auth-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      text-align: left;
+    }
     .field { display: block; margin: 14px 0; }
     .field span {
-      display: block; color: #d9e1f4; font-size: 0.9rem;
+      display: block;
       margin-bottom: 7px;
+      color: #dae3fb;
+      font-size: 0.9rem;
     }
     .field input {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--line);
-      background: #111827; color: var(--text); border-radius: 8px; outline: none;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 24, 39, 0.96);
+      color: var(--text);
+      outline: none;
     }
     .field input:focus { border-color: var(--blue); }
     .auth-actions {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
     }
     .btn {
-      border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
-      background: #1a2332; color: var(--text);
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1c2433;
+      color: var(--text);
+      transition: filter 0.15s ease, transform 0.15s ease;
     }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px); }
     .btn.primary {
-      background: var(--blue); border-color: var(--blue); color: white;
+      background: linear-gradient(180deg, #7d9cff, #6d8cff);
+      border-color: rgba(123, 156, 255, 0.9);
+      color: white;
     }
-    .btn.primary:hover { background: #587aff; }
-    .btn.secondary:hover { background: #2a3347; }
-    #authMessage {
-      min-height: 1.6em; margin-top: 12px; font-size: 0.88rem; color: var(--yellow);
+    .btn.secondary:hover { background: #2b3548; }
+    .status-line {
+      min-height: 1.6em;
+      margin-top: 12px;
+      color: var(--yellow);
+      font-size: 0.88rem;
       overflow-wrap: anywhere;
     }
-    .grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr); gap: 18px; }
+
+    .layout {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
     .card {
       border: 1px solid var(--line);
       border-radius: 18px;
       background: linear-gradient(160deg, #1d2332, #171c28);
       box-shadow: 0 16px 48px rgba(0,0,0,0.15);
     }
-    .timer-card { padding: clamp(20px, 3vw, 36px); text-align: center; }
+    .timer-card {
+      padding: 28px 24px;
+      text-align: center;
+    }
     .session-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      color: var(--muted); font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.88rem;
     }
     .session-name { color: var(--text); font-weight: 650; }
-    .scramble-title { margin: 28px 0 8px; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+    .scramble-title {
+      margin: 28px 0 8px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
     #scramble {
-      min-height: 54px; display: flex; align-items: center; justify-content: center;
-      color: #dce4ff; font-size: clamp(1rem, 2.4vw, 1.3rem); line-height: 1.7; overflow-wrap: anywhere;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #dde7ff;
+      font-size: clamp(1rem, 2.5vw, 1.32rem);
+      line-height: 1.7;
+      overflow-wrap: anywhere;
     }
     #timer {
-      margin: 28px 0 4px; font-size: clamp(5rem, 16vw, 9rem); line-height: 1;
-      font-weight: 720; letter-spacing: -0.075em; font-variant-numeric: tabular-nums;
+      margin: 30px 0 6px;
+      font-size: clamp(5rem, 16vw, 9rem);
+      line-height: 1;
+      font-weight: 720;
+      letter-spacing: -0.075em;
+      font-variant-numeric: tabular-nums;
       transition: transform 0.12s ease, color 0.12s ease;
     }
-    #timer.ready { color: var(--green); transform: scale(1.055); }
+    #timer.ready { color: var(--green); transform: scale(1.06); }
     #timer.penalty { color: var(--yellow); }
     #timer.dnf { color: var(--red); }
-    #status { height: 25px; margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
-    .hint { margin-top: 18px; color: var(--muted); font-size: 0.8rem; line-height: 1.7; }
-    kbd {
-      display: inline-block; padding: 2px 7px; border: 1px solid #48536c; border-radius: 5px;
-      background: #111622; color: #e4e9f4; font: inherit;
+    #status {
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
     }
+    .hint {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.7;
+    }
+    kbd {
+      display: inline-block;
+      padding: 2px 7px;
+      border: 1px solid #48536c;
+      border-radius: 5px;
+      background: #111622;
+      color: #e4e9f4;
+      font: inherit;
+    }
+
     .side { display: grid; gap: 18px; align-content: start; }
-    .stats { padding: 20px; }
-    .card-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 1rem; }
-    .count { color: var(--muted); font-size: 0.78rem; font-weight: 500; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .stat { border: 1px solid var(--line); border-radius: 12px; background: #131824; padding: 13px; }
-    .stat-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 0.77rem; }
-    .stat-value { font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
-    .history { padding: 20px; min-height: 200px; }
+    .stats, .history { padding: 20px; }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      font-size: 1rem;
+    }
+    .count { color: var(--muted); font-size: 0.78rem; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 13px;
+      background: #131924;
+    }
+    .stat-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 0.77rem;
+    }
+    .stat-value {
+      font-weight: 700;
+      font-size: 1.15rem;
+      font-variant-numeric: tabular-nums;
+    }
     .table-wrap { max-height: 330px; overflow: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
     th, td { padding: 10px 6px; border-bottom: 1px solid var(--line); }
-    th { position: sticky; top: 0; background: #1b2130; color: var(--muted); font-size: 0.74rem; font-weight: 600; }
+    th {
+      position: sticky;
+      top: 0;
+      background: #1b2130;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
     th:first-child, td:first-child { width: 42px; text-align: center; }
-    th:last-child, td:last-child { width: 58px; text-align: right; }
-    .empty { color: var(--muted); text-align: center; padding: 22px 4px; }
+    th:last-child, td:last-child { width: 62px; text-align: right; }
+    .empty { padding: 22px 4px; color: var(--muted); text-align: center; }
     .small-btn {
-      border: 1px solid var(--line); border-radius: 8px; background: #202738; padding: 6px 9px; font-size: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #202738;
+      padding: 6px 9px;
+      font-size: 0.75rem;
+      color: var(--text);
     }
-    .small-btn:hover { background: #2b3549; }
+    .small-btn:hover { background: #2b3349; }
+
     .notice {
-      margin-top: 18px; padding: 12px 14px; border: 1px solid rgba(82, 102, 162, 0.27); border-radius: 12px;
-      background: rgba(108, 140, 255, 0.08); color: #b6c4df; font-size: 0.78rem; line-height: 1.6;
+      margin-top: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(111, 140, 255, 0.22);
+      border-radius: 12px;
+      background: rgba(111, 140, 255, 0.08);
+      color: #bfd0ff;
+      font-size: 0.8rem;
+      line-height: 1.6;
     }
-    dialog { width: min(480px, calc(100% - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--text); }
+
+    dialog {
+      width: min(480px, calc(100% - 28px));
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      color: var(--text);
+    }
     dialog::backdrop { background: rgba(5, 7, 12, 0.72); backdrop-filter: blur(3px); }
     .dialog-inner { padding: 22px; }
     .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .dialog-head h2 { margin: 0; font-size: 1.05rem; }
     .detail-label { display: block; margin: 18px 0 6px; color: var(--muted); font-size: 0.8rem; }
     #detailScramble { line-height: 1.7; overflow-wrap: anywhere; }
-    #detailTime { font-variant-numeric: tabular-nums; font-weight: 700; }
+    #detailTime { font-weight: 700; font-variant-numeric: tabular-nums; }
 
     @media (max-width: 760px) {
-      body { padding: 15px; }
-      .grid { grid-template-columns: 1fr; }
+      body { padding: 14px; }
+      .topbar { flex-wrap: wrap; }
+      .badge { display: none; }
+      .layout { grid-template-columns: 1fr; }
       .auth-actions { grid-template-columns: 1fr; }
       .timer-card { padding: 24px 16px; }
-      .demo-badge { display: none; }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <header>
+    <header id="pageHeader" class="topbar hidden">
       <div class="brand">
         <div class="logo" aria-hidden="true">⏱</div>
         <div>
-          <h1>Rubik Timer</h1>
-          <div class="subbrand">Speedcubing practice</div>
+          <div class="brand-title">Rubik Timer</div>
+          <div class="brand-sub">Speedcubing practice</div>
         </div>
       </div>
-      <span class="demo-badge">EMAIL AUTH + SUPABASE</span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span id="signedInEmail" class="badge">Email</span>
+        <button id="signOutBtn" type="button" class="btn secondary">Đăng xuất</button>
+      </div>
     </header>
 
     <section id="authScreen" class="auth-screen">
       <form id="authForm" class="auth-card" novalidate>
-        <h2 class="auth-title">Đăng nhập tài khoản</h2>
-        <p class="auth-copy">Đăng nhập hoặc tạo tài khoản bằng email để lưu thành tích của bạn trên Supabase.</p>
+        <h2>Đăng nhập</h2>
+        <p class="auth-copy">Đăng nhập hoặc tạo tài khoản bằng email để lưu thành tích của bạn lên Supabase.</p>
 
         <label class="field">
           <span>Email</span>
@@ -198,36 +345,38 @@
           <button id="signUpButton" type="button" class="btn secondary">Tạo tài khoản</button>
         </div>
 
-        <div id="authMessage" role="status" aria-live="polite"></div>
+        <div id="authMessage" class="status-line" role="status" aria-live="polite"></div>
       </form>
     </section>
 
     <main id="app" class="grid hidden">
-      <section class="card timer-card" aria-label="Đồng hồ bấm giờ">
+      <section class="card timer-card" aria-label="Rubik timer">
         <div class="session-row">
           <span>Người giải</span>
-          <span id="displayName" class="session-name">Loading…</span>
+          <span id="displayName" class="session-name">Player</span>
         </div>
+
         <div class="scramble-title">Scramble 3×3</div>
         <div id="scramble" aria-live="polite"></div>
         <div id="timer" aria-live="polite">0.00</div>
-        <div id="status" role="status">Đang nạp dữ liệu…</div>
-        <p class="hint"><kbd>Space</kbd> bắt đầu kiểm tra · giữ rồi thả để chạy · <kbd>Space</kbd> lần nữa để dừng<br/>Hoặc bấm trực tiếp vào đồng hồ để bắt đầu / dừng</p>
+        <div id="status" role="status">Sẵn sàng</div>
+
+        <p class="hint"><kbd>Space</kbd> bắt đầu kiểm tra · giữ rồi thả để chạy · <kbd>Space</kbd> lần nữa để dừng<br />Hoặc bấm trực tiếp vào đồng hồ để bắt đầu / dừng</p>
       </section>
 
       <aside class="side">
         <section class="card stats">
-          <h2 class="card-title">Thống kê <span id="solveCount" class="count">0 lượt</span></h2>
+          <h2 class="section-title">Thống kê <span id="solveCount" class="count">0 lượt</span></h2>
           <div class="stats-grid">
-            <div class="stat"><span class="stat-label">Best</span><span class="stat-value" id="best">--</span></div>
-            <div class="stat"><span class="stat-label">Mean</span><span class="stat-value" id="mean">--</span></div>
-            <div class="stat"><span class="stat-label">ao5</span><span class="stat-value" id="ao5">--</span></div>
-            <div class="stat"><span class="stat-label">ao12</span><span class="stat-value" id="ao12">--</span></div>
+            <div class="stat"><span class="stat-label">Best</span><span id="best" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">Mean</span><span id="mean" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">ao5</span><span id="ao5" class="stat-value">--</span></div>
+            <div class="stat"><span class="stat-label">ao12</span><span id="ao12" class="stat-value">--</span></div>
           </div>
         </section>
 
         <section class="card history">
-          <h2 class="card-title">Lịch sử <span class="count">Gần nhất trước</span></h2>
+          <h2 class="section-title">Lịch sử <span class="count">Gần nhất trước</span></h2>
           <div class="table-wrap">
             <table>
               <thead>
@@ -240,14 +389,14 @@
       </aside>
     </main>
 
-    <div class="notice hidden" id="accountNotice">Bạn đã đăng nhập. Nút đăng xuất ở góc trên cùng khi web hoạt động.</div>
+    <div id="accountNotice" class="notice hidden">Bạn đã đăng nhập. Tài khoản của bạn đang được lưu lên Supabase.</div>
   </div>
 
   <dialog id="detailDialog">
     <div class="dialog-inner">
       <div class="dialog-head">
         <h2 id="detailTitle">Chi tiết lượt</h2>
-        <button class="small-btn" id="closeDialog" type="button">Đóng</button>
+        <button id="closeDialog" type="button" class="small-btn">Đóng</button>
       </div>
       <span class="detail-label">Scramble</span>
       <div id="detailScramble"></div>
@@ -260,7 +409,7 @@
   <script>
     const SUPABASE_URL = "https://bmglojinjtodeczsgjxh.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const TABLE = "rubik_scores";
     const PLUS_TWO_MS = 15000;
@@ -269,21 +418,24 @@
     const SUFFIXES = ["", "'", "2"];
     const AXIS = { R: "x", L: "x", U: "y", D: "y", F: "z", B: "z" };
 
-    const $ = (id) => document.getElementById(id);
-    const authScreen = $("authScreen");
-    const authForm = $("authForm");
-    const emailInput = $("emailInput");
-    const passwordInput = $("passwordInput");
-    const authMessage = $("authMessage");
-    const app = $("app");
-    const timerEl = $("timer");
-    const statusEl = $("status");
-    const scrambleEl = $("scramble");
-    const resultsBody = $("results");
-    const displayNameEl = $("displayName");
-    const dialog = $("detailDialog");
-    const accountNotice = $("accountNotice");
+    const authScreen = document.getElementById("authScreen");
+    const authForm = document.getElementById("authForm");
+    const authMessage = document.getElementById("authMessage");
+    const app = document.getElementById("app");
+    const pageHeader = document.getElementById("pageHeader");
+    const signedInEmail = document.getElementById("signedInEmail");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const timerEl = document.getElementById("timer");
+    const statusEl = document.getElementById("status");
+    const scrambleEl = document.getElementById("scramble");
+    const resultsBody = document.getElementById("results");
+    const displayNameEl = document.getElementById("displayName");
+    const detailDialog = document.getElementById("detailDialog");
+    const accountNotice = document.getElementById("accountNotice");
 
+    let currentUser = null;
+    let solves = [];
     let phase = "idle";
     let keyHeld = false;
     let inspectionAt = 0;
@@ -291,12 +443,10 @@
     let penalty = "";
     let currentScramble = "";
     let ticker = null;
-    let currentUser = null;
-    let solves = [];
 
-    function setAuthMessage(message, isError = false) {
-      authMessage.textContent = message;
-      authMessage.style.color = isError ? "#f9a8a8" : "#f4ce69";
+    function setAuthMessage(msg, isError = false) {
+      authMessage.textContent = msg;
+      authMessage.style.color = isError ? "#ffb3b8" : "#f5d077";
     }
 
     function setStatus(message, kind = "") {
@@ -344,20 +494,20 @@
       scrambleEl.textContent = currentScramble;
     }
 
-    function renderStats() {
-      const validResults = solves.map(effective).filter(Number.isFinite);
-      $("solveCount").textContent = `${solves.length} lượt`;
-      $("best").textContent = validResults.length ? format(Math.min(...validResults)) : "--";
-      $("mean").textContent = validResults.length ? format(validResults.reduce((a, b) => a + b, 0) / validResults.length) : "--";
-      $("ao5").textContent = trimmedAverage(5);
-      $("ao12").textContent = trimmedAverage(12);
-    }
-
     function trimmedAverage(count) {
       if (solves.length < count) return "--";
       const times = solves.slice(-count).map(effective).sort((a, b) => a - b).slice(1, -1);
       if (times.some(v => !Number.isFinite(v))) return "DNF";
       return format(times.reduce((sum, v) => sum + v, 0) / times.length);
+    }
+
+    function updateStats() {
+      const validResults = solves.map(effective).filter(Number.isFinite);
+      document.getElementById("solveCount").textContent = `${solves.length} lượt`;
+      document.getElementById("best").textContent = validResults.length ? format(Math.min(...validResults)) : "--";
+      document.getElementById("mean").textContent = validResults.length ? format(validResults.reduce((a, b) => a + b, 0) / validResults.length) : "--";
+      document.getElementById("ao5").textContent = trimmedAverage(5);
+      document.getElementById("ao12").textContent = trimmedAverage(12);
     }
 
     function renderResults() {
@@ -379,20 +529,21 @@
         const numCell = document.createElement("td");
         const valCell = document.createElement("td");
         const actionCell = document.createElement("td");
-        const button = document.createElement("button");
+        const btn = document.createElement("button");
 
         numCell.textContent = String(number);
         valCell.textContent = resultLabel(solve);
-        button.type = "button";
-        button.className = "small-btn";
-        button.textContent = "Xem";
-        button.addEventListener("click", () => {
-          $("detailTitle").textContent = `Chi tiết lượt ${number}`;
-          $("detailScramble").textContent = solve.scramble;
-          $("detailTime").textContent = resultLabel(solve);
-          dialog.showModal();
+        btn.type = "button";
+        btn.className = "small-btn";
+        btn.textContent = "Xem";
+        btn.addEventListener("click", () => {
+          document.getElementById("detailTitle").textContent = `Chi tiết lượt ${number}`;
+          document.getElementById("detailScramble").textContent = solve.scramble;
+          document.getElementById("detailTime").textContent = resultLabel(solve);
+          detailDialog.showModal();
         });
-        actionCell.appendChild(button);
+
+        actionCell.appendChild(btn);
         row.append(numCell, valCell, actionCell);
         resultsBody.appendChild(row);
       });
@@ -401,13 +552,13 @@
     async function loadSolves() {
       if (!currentUser) {
         solves = [];
-        renderStats();
+        updateStats();
         renderResults();
         return;
       }
 
       setStatus("Đang tải thành tích...");
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from(TABLE)
         .select("id, raw_ms, penalty, scramble, created_at")
         .eq("user_id", currentUser.id)
@@ -421,7 +572,7 @@
         setStatus("Sẵn sàng");
       }
 
-      renderStats();
+      updateStats();
       renderResults();
     }
 
@@ -437,7 +588,7 @@
         created_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from(TABLE)
         .insert(payload)
         .select("id, raw_ms, penalty, scramble, created_at")
@@ -449,7 +600,7 @@
       }
 
       solves.push(data);
-      renderStats();
+      updateStats();
       renderResults();
       setStatus("Đã lưu lượt giải");
     }
@@ -469,7 +620,6 @@
 
     function updateInspection() {
       if (phase !== "inspection" && phase !== "armed") return;
-
       const elapsed = performance.now() - inspectionAt;
 
       if (elapsed >= DNF_MS) {
@@ -535,7 +685,7 @@
 
     document.addEventListener("keydown", (event) => {
       if (app.classList.contains("hidden")) return;
-      if (event.code !== "Space" || event.repeat || dialog.open) return;
+      if (event.code !== "Space" || event.repeat || detailDialog.open) return;
       if (event.target instanceof HTMLElement && (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(event.target.tagName))) return;
       event.preventDefault();
       if (keyHeld) return;
@@ -552,15 +702,14 @@
 
     window.addEventListener("blur", () => {
       keyHeld = false;
-      if (phase === "armed") {
-        beginSolve();
-      }
+      if (phase === "armed") beginSolve();
     });
 
     timerEl.addEventListener("click", () => {
       if (app.classList.contains("hidden")) return;
-      if (phase === "idle") beginInspection();
-      else if (phase === "inspection") {
+      if (phase === "idle") {
+        beginInspection();
+      } else if (phase === "inspection") {
         phase = "armed";
         timerEl.classList.add("ready");
         setStatus("Thả phím để bắt đầu");
@@ -570,9 +719,9 @@
       }
     });
 
-    $("closeDialog").addEventListener("click", () => dialog.close());
-    dialog.addEventListener("click", (event) => {
-      if (event.target === dialog) dialog.close();
+    document.getElementById("closeDialog").addEventListener("click", () => detailDialog.close());
+    detailDialog.addEventListener("click", (event) => {
+      if (event.target === detailDialog) detailDialog.close();
     });
 
     async function signIn() {
@@ -584,7 +733,7 @@
       }
 
       setAuthMessage("Đang đăng nhập...");
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
         setAuthMessage(error.message, true);
         return;
@@ -602,21 +751,21 @@
       }
 
       setAuthMessage("Đang tạo tài khoản...");
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) {
         setAuthMessage(error.message, true);
         return;
       }
       if (data.session) {
-        setAuthMessage("Đăng ký thành công! Đang vào ứng dụng...");
+        setAuthMessage("Đăng ký thành công. Đang vào ứng dụng...");
         await activateSession(data.session);
       } else {
-        setAuthMessage("Tạo tài khoản thành công. Hãy xác nhận email rồi đăng nhập.");
+        setAuthMessage("Tạo tài khoản thành công. Hãy xác nhận email nếu cần rồi đăng nhập lại.");
       }
     }
 
     async function signOut() {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await sb.auth.signOut();
       if (error) {
         setAuthMessage(error.message, true);
         return;
@@ -624,59 +773,66 @@
       currentUser = null;
       app.classList.add("hidden");
       authScreen.classList.remove("hidden");
+      pageHeader.classList.add("hidden");
+      accountNotice.classList.add("hidden");
       emailInput.value = "";
       passwordInput.value = "";
       setAuthMessage("Bạn đã đăng xuất.");
-      setStatus("Chưa đăng nhập", "");
+      setStatus("Chưa đăng nhập");
       refreshScramble();
     }
 
     async function activateSession(session) {
       if (!session?.user) return;
       currentUser = session.user;
-      displayNameEl.textContent = currentUser.email || "User";
       app.classList.remove("hidden");
       authScreen.classList.add("hidden");
+      pageHeader.classList.remove("hidden");
       accountNotice.classList.remove("hidden");
+      signedInEmail.textContent = currentUser.email || "User";
+      displayNameEl.textContent = currentUser.email || "Player";
       await loadSolves();
       refreshScramble();
       setStatus("Sẵn sàng");
     }
 
-    async function initAuth() {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        setAuthMessage(error.message, true);
-      }
-      if (session) {
-        await activateSession(session);
-      } else {
-        authScreen.classList.remove("hidden");
-        app.classList.add("hidden");
-      }
-
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (!session) {
-          currentUser = null;
-          app.classList.add("hidden");
-          authScreen.classList.remove("hidden");
-          accountNotice.classList.add("hidden");
-          return;
-        }
-        await activateSession(session);
-      });
-    }
-
-    $("signInButton").addEventListener("click", signIn);
-    $("signUpButton").addEventListener("click", signUp);
+    document.getElementById("signInButton").addEventListener("click", signIn);
+    document.getElementById("signUpButton").addEventListener("click", signUp);
+    document.getElementById("signOutBtn").addEventListener("click", signOut);
     authForm.addEventListener("submit", (event) => {
       event.preventDefault();
       signIn();
     });
 
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session }, error } = await sb.auth.getSession();
+      if (error) setAuthMessage(error.message, true);
+
+      if (session) {
+        await activateSession(session);
+      } else {
+        authScreen.classList.remove("hidden");
+        pageHeader.classList.add("hidden");
+        app.classList.add("hidden");
+      }
+
+      sb.auth.onAuthStateChange(async (_event, session) => {
+        if (!session) {
+          currentUser = null;
+          app.classList.add("hidden");
+          authScreen.classList.remove("hidden");
+          pageHeader.classList.add("hidden");
+          accountNotice.classList.add("hidden");
+          setAuthMessage("Bạn đã đăng xuất.");
+          return;
+        }
+
+        await activateSession(session);
+      });
+
       refreshScramble();
-      initAuth();
+      updateStats();
+      renderResults();
     });
   </script>
 </body>
