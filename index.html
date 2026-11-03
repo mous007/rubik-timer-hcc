@@ -3,515 +3,299 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rubik Timer</title>
+  <meta name="theme-color" content="#10131c" />
+  <title>Rubik Timer — Demo</title>
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-      background: #111827;
-      color: #f9fafb;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    .layout {
-      width: min(1150px, 100%);
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(270px, 360px) minmax(0, 1fr);
-      gap: 20px;
-      align-items: start;
-    }
-
-    .sidebar { display: grid; gap: 16px; }
-
-    .panel {
-      padding: 20px;
-      border: 1px solid #374151;
-      border-radius: 14px;
-      background: #1f2937;
-    }
-
-    h1 { margin: 0 0 20px; text-align: center; }
-    h2 { margin: 0 0 14px; font-size: 1.1rem; }
-
-    .name-field {
-      display: block;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    .name-field span {
-      display: block;
-      margin-bottom: 7px;
-      color: #d1d5db;
-      font-size: 0.9rem;
-    }
-
-    #solverName {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #4b5563;
-      border-radius: 8px;
-      outline: none;
-      background: #111827;
-      color: #f9fafb;
-    }
-
-    #solverName:focus { border-color: #60a5fa; }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .stat {
-      padding: 12px;
-      border: 1px solid #374151;
-      border-radius: 9px;
-      background: #111827;
-    }
-
-    .stat-label {
-      display: block;
-      margin-bottom: 6px;
-      color: #9ca3af;
-      font-size: 0.84rem;
-    }
-
-    .stat-value {
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stats-note {
-      margin: 12px 0 0;
-      color: #9ca3af;
-      font-size: 0.78rem;
-      line-height: 1.5;
-    }
-
-    .table-wrap { max-height: 420px; overflow: auto; }
-
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 10px 7px; border-bottom: 1px solid #374151; }
-    th {
-      position: sticky;
-      top: 0;
-      background: #1f2937;
-      color: #9ca3af;
-      font-size: 0.82rem;
-    }
-
-    th:first-child, td:first-child { width: 48px; text-align: center; }
-    th:last-child, td:last-child { width: 60px; text-align: center; }
-    tbody tr:last-child td { border-bottom: 0; }
-
-    .empty {
-      padding: 18px 8px;
-      color: #9ca3af;
-      text-align: center;
-    }
-
-    .detail-button, .close-button {
-      padding: 5px 9px;
-      border: 1px solid #4b5563;
-      border-radius: 6px;
-      background: #111827;
-      color: #f9fafb;
-      cursor: pointer;
-    }
-
-    .timer-panel { min-width: 0; text-align: center; }
-
-    .scramble-label {
-      margin-bottom: 8px;
-      color: #9ca3af;
-      font-size: 0.82rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    #scramble {
-      min-height: 3.5em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #e5e7eb;
-      font-size: clamp(1rem, 2.5vw, 1.35rem);
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-
-    #timer {
-      margin: 34px 0 8px;
-      font-size: clamp(4rem, 15vw, 8rem);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.06em;
-      transition: transform 120ms ease, color 120ms ease;
-    }
-
-    #timer.armed { transform: scale(1.12); color: #4ade80; }
-    #status { min-height: 1.7em; color: #9ca3af; }
-    .warning { color: #facc15 !important; }
-    .dnf { color: #f87171 !important; }
-
-    dialog {
-      width: min(520px, calc(100% - 32px));
-      padding: 0;
-      border: 1px solid #4b5563;
-      border-radius: 14px;
-      background: #1f2937;
-      color: #f9fafb;
-    }
-
-    dialog::backdrop { background: rgb(0 0 0 / 65%); }
-
-    .dialog-content { padding: 22px; }
-    .dialog-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .dialog-header h2 { margin: 0; }
-    .detail-label { display: block; margin-bottom: 6px; color: #9ca3af; }
-    #detailScramble { line-height: 1.7; overflow-wrap: anywhere; }
-    #detailTime { font-weight: 700; font-variant-numeric: tabular-nums; }
-
-    @media (max-width: 760px) {
-      body { padding: 14px; }
-      .layout { grid-template-columns: 1fr; }
-      .timer-panel { grid-row: 1; }
-      .sidebar { grid-row: 2; }
-    }
+    :root { color-scheme: dark; --bg:#10131c; --panel:#191e2b; --panel2:#202738; --line:#30394d; --muted:#9ba7bd; --text:#f4f6fb; --blue:#6c8cff; --green:#77e0a1; --yellow:#f4ce69; --red:#ff7f86; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; padding:24px; background:radial-gradient(ellipse at 75% -10%,#29375d 0,transparent 42%),var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    button,input { font:inherit; }
+    button { color:inherit; cursor:pointer; }
+    .shell { max-width:1100px; margin:auto; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { display:grid; place-items:center; width:42px; height:42px; border-radius:13px; background:linear-gradient(135deg,#7997ff,#8a6cff); font-size:23px; box-shadow:0 8px 24px #647eff35; }
+    h1 { margin:0; font-size:1.3rem; letter-spacing:-.03em; }
+    .subbrand { color:var(--muted); font-size:.82rem; margin-top:3px; }
+    .demo-badge { border:1px solid #6c8cff55; border-radius:999px; padding:7px 11px; color:#b9c8ff; background:#6c8cff12; font-size:.78rem; white-space:nowrap; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr); gap:18px; }
+    .card { border:1px solid var(--line); border-radius:18px; background:linear-gradient(160deg,#1d2332,#171c28); box-shadow:0 16px 48px #0002; }
+    .timer-card { padding:clamp(20px,4vw,36px); text-align:center; }
+    .session-row { display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--muted); font-size:.88rem; }
+    .session-name { color:var(--text); font-weight:650; }
+    .scramble-title { margin:28px 0 8px; color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+    #scramble { min-height:54px; display:flex; align-items:center; justify-content:center; color:#dce4ff; font-size:clamp(1rem,2.4vw,1.3rem); line-height:1.7; overflow-wrap:anywhere; }
+    #timer { margin:28px 0 4px; font-size:clamp(5rem,16vw,9rem); line-height:1; font-weight:720; letter-spacing:-.075em; font-variant-numeric:tabular-nums; transition:transform .12s,color .12s; }
+    #timer.ready { color:var(--green); transform:scale(1.055); }
+    #timer.penalty { color:var(--yellow); }
+    #timer.dnf { color:var(--red); }
+    #status { height:25px; margin-top:12px; color:var(--muted); font-size:.9rem; }
+    .hint { margin:19px 0 0; color:var(--muted); font-size:.8rem; }
+    kbd { display:inline-block; padding:2px 7px; border:1px solid #48536c; border-radius:5px; background:#111622; color:#e4e9f4; font:inherit; }
+    .side { display:grid; gap:18px; align-content:start; }
+    .stats { padding:20px; }
+    .card-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 16px; font-size:1rem; }
+    .stats-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .stat { border:1px solid var(--line); border-radius:12px; background:#131824; padding:13px; }
+    .stat-label { display:block; margin-bottom:7px; color:var(--muted); font-size:.77rem; }
+    .stat-value { font-weight:700; font-size:1.15rem; font-variant-numeric:tabular-nums; }
+    .history { padding:20px; min-height:200px; }
+    .count { color:var(--muted); font-size:.78rem; font-weight:500; }
+    .table-wrap { max-height:330px; overflow:auto; }
+    table { width:100%; border-collapse:collapse; text-align:left; font-size:.88rem; }
+    th,td { padding:10px 6px; border-bottom:1px solid var(--line); }
+    th { position:sticky; top:0; background:#1b2130; color:var(--muted); font-size:.74rem; font-weight:600; }
+    th:first-child,td:first-child { width:42px; text-align:center; }
+    th:last-child,td:last-child { width:58px; text-align:right; }
+    .empty { color:var(--muted); text-align:center; padding:22px 4px; }
+    .small-btn { border:1px solid var(--line); border-radius:8px; background:#202738; padding:6px 9px; font-size:.75rem; }
+    .small-btn:hover { background:#2b3549; }
+    .notice { margin-top:18px; padding:12px 14px; border:1px solid #5266a244; border-radius:12px; background:#6c8cff0d; color:#b6c4df; font-size:.78rem; line-height:1.5; }
+    dialog { width:min(480px,calc(100% - 28px)); padding:0; border:1px solid var(--line); border-radius:16px; background:var(--panel); color:var(--text); }
+    dialog::backdrop { background:#05070cbb; backdrop-filter:blur(3px); }
+    .dialog-inner { padding:22px; }
+    .dialog-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .dialog-head h2 { margin:0; font-size:1.05rem; }
+    .detail-label { display:block; margin:18px 0 6px; color:var(--muted); font-size:.8rem; }
+    #detailScramble { line-height:1.7; overflow-wrap:anywhere; }
+    #detailTime { font-variant-numeric:tabular-nums; font-weight:700; }
+    @media(max-width:760px) { body{padding:15px}.grid{grid-template-columns:1fr}.timer-card{padding:24px 16px}.side{grid-template-columns:1fr}.demo-badge{font-size:.7rem} }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <section class="panel">
-        <h2>Thành tích của người giải</h2>
-        <div class="stats-grid">
-          <div class="stat"><span class="stat-label">Best</span><span id="best" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">Arg</span><span id="arg" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">ao5</span><span id="ao5" class="stat-value">--</span></div>
-          <div class="stat"><span class="stat-label">ao12</span><span id="ao12" class="stat-value">--</span></div>
-        </div>
-        <p class="stats-note">
-          Arg là trung bình các lượt không DNF. ao5/ao12 cần đủ lượt và bỏ
-          một lượt tốt nhất, một lượt tệ nhất.
-        </p>
+  <div class="shell">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true">⏱</div><div><h1>Rubik Timer</h1><div class="subbrand">Speedcubing practice</div></div></div>
+      <span class="demo-badge">BẢN DEMO · Lưu trên thiết bị này</span>
+    </header>
+
+    <main class="grid">
+      <section class="card timer-card" aria-label="Đồng hồ bấm giờ">
+        <div class="session-row"><span>Người giải</span><span class="session-name">Cubing guest</span></div>
+        <div class="scramble-title">Scramble 3×3</div>
+        <div id="scramble" aria-live="polite"></div>
+        <div id="timer" aria-live="polite">0.00</div>
+        <div id="status" role="status">Sẵn sàng</div>
+        <p class="hint"><kbd>Space</kbd> bắt đầu kiểm tra · giữ rồi thả để chạy · <kbd>Space</kbd> lần nữa để dừng<br/>Hoặc bấm trực tiếp vào đồng hồ để bắt đầu / dừng</p>
       </section>
 
-      <section class="panel">
-        <h2>Lịch sử của người giải</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>STT</th><th>Thành tích</th><th></th></tr>
-            </thead>
-            <tbody id="results"></tbody>
-          </table>
-        </div>
-      </section>
-    </aside>
-
-    <main class="panel timer-panel">
-      <h1>Rubik Timer</h1>
-
-      <label class="name-field">
-        <span>Tên người giải</span>
-        <input id="solverName" type="text" maxlength="30" placeholder="Nhập tên của bạn" />
-      </label>
-
-      <div class="scramble-label">Scramble 3×3</div>
-      <div id="scramble" aria-live="polite"></div>
-      <div id="timer" aria-live="polite">0.00</div>
-      <div id="status"></div>
+      <aside class="side">
+        <section class="card stats">
+          <h2 class="card-title">Thống kê <span class="count" id="solveCount">0 lượt</span></h2>
+          <div class="stats-grid">
+            <div class="stat"><span class="stat-label">Best</span><span class="stat-value" id="best">--</span></div>
+            <div class="stat"><span class="stat-label">Mean</span><span class="stat-value" id="mean">--</span></div>
+            <div class="stat"><span class="stat-label">ao5</span><span class="stat-value" id="ao5">--</span></div>
+            <div class="stat"><span class="stat-label">ao12</span><span class="stat-value" id="ao12">--</span></div>
+          </div>
+        </section>
+        <section class="card history">
+          <h2 class="card-title">Lịch sử <span class="count">Gần nhất trước</span></h2>
+          <div class="table-wrap"><table><thead><tr><th>#</th><th>Thời gian</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
+        </section>
+      </aside>
     </main>
+    <div class="notice">Đây là bản demo để xem giao diện và thử đồng hồ. Thành tích chỉ lưu trong trình duyệt hiện tại; đăng nhập và đồng bộ Supabase chưa được bật trong bản demo.</div>
   </div>
 
   <dialog id="detailDialog">
-    <div class="dialog-content">
-      <div class="dialog-header">
-        <h2 id="detailTitle">Chi tiết lượt giải</h2>
-        <button id="closeDialog" class="close-button" type="button">Đóng</button>
-      </div>
-      <p><span class="detail-label">Scramble</span><span id="detailScramble"></span></p>
-      <p><span class="detail-label">Thời gian thực hiện</span><span id="detailTime"></span></p>
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="detailTitle">Chi tiết lượt</h2><button class="small-btn" id="closeDialog" type="button">Đóng</button></div>
+      <span class="detail-label">Scramble</span><div id="detailScramble"></div>
+      <span class="detail-label">Kết quả</span><div id="detailTime"></div>
     </div>
   </dialog>
 
   <script>
-    const HISTORY_KEY = "rubikTimerHistory.v1";
-    const GLOBAL_KEY = "rubikTimerGlobalResults.v1";
-    const INSPECTION_PLUS_TWO_MS = 15_000;
-    const INSPECTION_DNF_MS = 17_000;
-    const SCRAMBLE_LENGTH = 25;
+    (() => {
+      "use strict";
+      const STORAGE_KEY = "rubikTimer.demo.solves.v1";
+      const PLUS_TWO_MS = 15000;
+      const DNF_MS = 17000;
+      const FACES = ["R", "L", "U", "D", "F", "B"];
+      const SUFFIXES = ["", "'", "2"];
+      const AXIS = { R:"x", L:"x", U:"y", D:"y", F:"z", B:"z" };
+      const $ = (id) => document.getElementById(id);
+      const timerEl = $("timer"), statusEl = $("status"), scrambleEl = $("scramble");
+      const dialog = $("detailDialog");
+      let phase = "idle"; // idle -> inspection -> armed -> running -> idle
+      let keyHeld = false;
+      let inspectionAt = 0;
+      let solveAt = 0;
+      let penalty = "";
+      let scramble = "";
+      let ticker = null;
+      let solves = loadSolves();
 
-    const faces = ["R", "L", "U", "D", "F", "B"];
-    const suffixes = ["", "'", "2"];
-    const axisByFace = { R: "x", L: "x", U: "y", D: "y", F: "z", B: "z" };
-
-    const nameInput = document.getElementById("solverName");
-    const timerEl = document.getElementById("timer");
-    const statusEl = document.getElementById("status");
-    const scrambleEl = document.getElementById("scramble");
-    const resultsEl = document.getElementById("results");
-    const detailDialog = document.getElementById("detailDialog");
-
-    let phase = "idle";
-    let spaceDown = false;
-    let inspectionStartedAt = 0;
-    let solveStartedAt = 0;
-    let inspectionPenalty = "";
-    let currentScramble = "";
-    let intervalId = null;
-
-    function readStorage(key) {
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(value) ? value : [];
-      } catch {
-        return [];
+      function loadSolves() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed : [];
+        } catch { return []; }
       }
-    }
-
-    function writeStorage(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch {
-        return false;
+      function saveSolves() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(solves)); }
+        catch { setStatus("Không thể lưu dữ liệu trên thiết bị này.", "warning"); }
       }
-    }
-
-    function getHistory() {
-      return readStorage(HISTORY_KEY);
-    }
-
-    function getCurrentName() {
-      return nameInput.value.trim();
-    }
-
-    function getPersonRecords() {
-      const name = getCurrentName().toLocaleLowerCase();
-      if (!name) return [];
-      return getHistory().filter(
-        record => (record.name || "").toLocaleLowerCase() === name
-      );
-    }
-
-    function formatTime(ms) {
-      return (ms / 1000).toFixed(2);
-    }
-
-    function resultText(record) {
-      if (record.penalty === "dnf") return `${formatTime(record.rawMs)} (DNF)`;
-      if (record.penalty === "plus2") return `${formatTime(record.rawMs + 2000)} (+2)`;
-      return formatTime(record.rawMs);
-    }
-
-    function effectiveTime(record) {
-      if (record.penalty === "dnf") return Infinity;
-      return record.rawMs + (record.penalty === "plus2" ? 2000 : 0);
-    }
-
-    function renderResults() {
-      const records = getPersonRecords();
-      resultsEl.replaceChildren();
-
-      if (!records.length) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 3;
-        cell.className = "empty";
-        cell.textContent = "Chưa có lượt giải";
-        row.appendChild(cell);
-        resultsEl.appendChild(row);
-        return;
-      }
-
-      [...records].reverse().forEach((record, index) => {
-        const solveNumber = records.length - index;
-        const row = document.createElement("tr");
-        const number = document.createElement("td");
-        const result = document.createElement("td");
-        const action = document.createElement("td");
-        const button = document.createElement("button");
-
-        number.textContent = solveNumber;
-        result.textContent = resultText(record);
-        button.type = "button";
-        button.className = "detail-button";
-        button.textContent = "Xem";
-        button.addEventListener("click", () => showDetails(record, solveNumber));
-
-        action.appendChild(button);
-        row.append(number, result, action);
-        resultsEl.appendChild(row);
-      });
-    }
-
-    function average(values) {
-      return values.reduce((sum, value) => sum + value, 0) / values.length;
-    }
-
-    function trimmedAverage(records, count) {
-      if (records.length < count) return "--";
-
-      const times = records.slice(-count).map(effectiveTime).sort((a, b) => a - b);
-      const trimmed = times.slice(1, -1);
-
-      if (trimmed.some(value => !Number.isFinite(value))) return "DNF";
-      return formatTime(average(trimmed));
-    }
-
-    function renderStats() {
-      const records = getPersonRecords();
-      const valid = records.map(effectiveTime).filter(Number.isFinite);
-
-      document.getElementById("best").textContent =
-        valid.length ? formatTime(Math.min(...valid)) : "--";
-      document.getElementById("arg").textContent =
-        valid.length ? formatTime(average(valid)) : "--";
-      document.getElementById("ao5").textContent = trimmedAverage(records, 5);
-      document.getElementById("ao12").textContent = trimmedAverage(records, 12);
-    }
-
-    function showDetails(record, number) {
-      document.getElementById("detailTitle").textContent = `Chi tiết lượt ${number}`;
-      document.getElementById("detailScramble").textContent = record.scramble;
-      let text = `${formatTime(record.rawMs)} giây`;
-
-      if (record.penalty === "plus2") {
-        text += ` + 2.00 giây phạt = ${formatTime(record.rawMs + 2000)} giây`;
-      } else if (record.penalty === "dnf") {
-        text += " (DNF)";
-      }
-
-      document.getElementById("detailTime").textContent = text;
-      detailDialog.showModal();
-    }
-
-    function generateScramble() {
-      const moves = [];
-      let previousAxis = "";
-
-      while (moves.length < SCRAMBLE_LENGTH) {
-        const face = faces[Math.floor(Math.random() * faces.length)];
-        const axis = axisByFace[face];
-        if (axis === previousAxis) continue;
-
-        moves.push(face + suffixes[Math.floor(Math.random() * suffixes.length)]);
-        previousAxis = axis;
-      }
-
-      return moves.join(" ");
-    }
-
-    function setStatus(message, className = "") {
-      statusEl.textContent = message;
-      statusEl.className = className;
-    }
-
-    function clearTimer() {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    }
-
-    function startInspection() {
-      if (!getCurrentName()) {
-        setStatus("Hãy nhập tên người giải trước.");
-        nameInput.focus();
-        phase = "idle";
-        return;
-      }
-
-      clearTimer();
-      phase = "inspection";
-      inspectionPenalty = "";
-      inspectionStartedAt = performance.now();
-      currentScramble = generateScramble();
-      scrambleEl.textContent = currentScramble;
-      timerEl.classList.remove("armed");
-      timerEl.textContent = "15";
-      setStatus("");
-
-      updateInspection();
-      intervalId = setInterval(updateInspection, 25);
-    }
-
-    function updateInspection() {
-      if (phase !== "inspection" && phase !== "armed") return;
-
-      const elapsed = performance.now() - inspectionStartedAt;
-
-      if (elapsed >= INSPECTION_DNF_MS) {
-        timerEl.textContent = "DNF";
-        setStatus(phase === "armed" ? "Thả Space để bắt đầu — lượt này là DNF" : "", "dnf");
-      } else if (elapsed >= INSPECTION_PLUS_TWO_MS) {
-        timerEl.textContent = "+2";
-        setStatus(phase === "armed" ? "Thả Space để bắt đầu — lượt này bị +2" : "", "warning");
-      } else {
-        timerEl.textContent = String(Math.ceil((INSPECTION_PLUS_TWO_MS - elapsed) / 1000));
-        if (phase === "armed") setStatus("Thả Space để bắt đầu");
-      }
-    }
-
-    function startSolve() {
-      const elapsed = performance.now() - inspectionStartedAt;
-      inspectionPenalty = elapsed >= INSPECTION_DNF_MS
-        ? "dnf"
-        : elapsed >= INSPECTION_PLUS_TWO_MS ? "plus2" : "";
-
-      phase = "running";
-      solveStartedAt = performance.now();
-      timerEl.classList.remove("armed");
-      setStatus(inspectionPenalty === "dnf"
-        ? "Đang giải — kết quả lượt này sẽ là DNF"
-        : inspectionPenalty === "plus2" ? "Đang giải — lượt này bị +2" : "",
-        inspectionPenalty === "dnf" ? "dnf" : inspectionPenalty === "plus2" ? "warning" : ""
-      );
-
-      clearTimer();
-      intervalId = setInterval(() => {
-        if (phase === "running") {
-          timerEl.textContent = formatTime(performance.now() - solveStartedAt);
+      function makeScramble() {
+        const moves = [];
+        let lastAxis = "";
+        while (moves.length < 25) {
+          const face = FACES[Math.floor(Math.random() * FACES.length)];
+          if (AXIS[face] === lastAxis) continue;
+          moves.push(face + SUFFIXES[Math.floor(Math.random() * SUFFIXES.length)]);
+          lastAxis = AXIS[face];
         }
-      }, 10);
-    }
-
-    function stopSolve() {
-      const rawMs = performance.now() - solveStartedAt;
-      const name = getCurrentName();
-      const record = {
-        name,
-        rawMs,
-        penalty: inspectionPenalty,
-        scramble: currentScramble,
-        createdAt: new Date().toISOString()
-      };
-
-      clearTimer();
-      phase = "stopped";
-      timerEl.classList.remove("armed");
-
-      if (inspectionPenalty === "dnf") {
-        timerEl.textContent = `${formatTime(rawMs)} (DNF)`;
-        setStatus("Kết quả: DNF", "dnf");
-      } else if (inspectionPenalty === "plus2") {
-        timerEl.textContent = `${formatTime(rawMs + 2000)} (+2)`;
-        setStatus("Kết quả đã được cộng +2", "warning");
-      } else {
-        timer*
-
+        return moves.join(" ");
+      }
+      function format(ms) { return (ms / 1000).toFixed(2); }
+      function effective(solve) {
+        if (solve.penalty === "dnf") return Infinity;
+        return solve.rawMs + (solve.penalty === "+2" ? 2000 : 0);
+      }
+      function resultLabel(solve) {
+        if (solve.penalty === "DNF") return `${format(solve.rawMs)} (DNF)`;
+        if (solve.penalty === "+2") return `${format(solve.rawMs + 2000)} (+2)`;
+        return format(solve.rawMs);
+      }
+      function setStatus(message, kind = "") {
+        statusEl.textContent = message;
+        statusEl.className = kind;
+      }
+      function clearTicker() {
+        if (ticker !== null) { clearInterval(ticker); ticker = null; }
+      }
+      function generateNextScramble() {
+        scramble = makeScramble();
+        scrambleEl.textContent = scramble;
+      }
+      function beginInspection() {
+        clearTicker();
+        phase = "inspection";
+        penalty = "";
+        inspectionAt = performance.now();
+        timerEl.className = "";
+        timerEl.textContent = "15";
+        generateNextScramble();
+        setStatus("Kiểm tra scramble…");
+        updateInspection();
+        ticker = setInterval(updateInspection, 25);
+      }
+      function updateInspection() {
+        if (phase !== "inspection" && phase !== "armed") return;
+        const elapsed = performance.now() - inspectionAt;
+        if (elapsed >= DNF_MS) {
+          timerEl.textContent = "DNF";
+          timerEl.className = "dnf";
+          setStatus(phase === "armed" ? "Thả phím để bắt đầu — lượt này DNF" : "Quá thời gian inspection: DNF", "dnf");
+        } else if (elapsed >= PLUS_TWO_MS) {
+          timerEl.textContent = "+2";
+          timerEl.className = "penalty";
+          setStatus(phase === "armed" ? "Thả phím để bắt đầu — lượt này +2" : "Inspection quá 15 giây: +2", "warning");
+        } else {
+          timerEl.textContent = String(Math.ceil((PLUS_TWO_MS - elapsed) / 1000));
+          if (phase === "armed") setStatus("Thả phím để bắt đầu", "");
+        }
+      }
+      function beginSolve() {
+        const elapsed = performance.now() - inspectionAt;
+        penalty = elapsed >= DNF_MS ? "DNF" : elapsed >= PLUS_TWO_MS ? "+2" : "";
+        phase = "running";
+        solveAt = performance.now();
+        clearTicker();
+        timerEl.className = "";
+        setStatus(penalty === "DNF" ? "Đang giải · lượt này DNF" : penalty === "+2" ? "Đang giải · lượt này +2" : "Đang giải");
+        ticker = setInterval(() => {
+          if (phase === "running") timerEl.textContent = format(performance.now() - solveAt);
+        }, 10);
+      }
+      function finishSolve() {
+        if (phase !== "running") return;
+        const rawMs = Math.max(0, Math.round(performance.now() - solveAt));
+        clearTicker();
+        phase = "idle";
+        const solve = { rawMs, penalty, scramble, createdAt: new Date().toISOString() };
+        solves.push(solve);
+        saveSolves();
+        timerEl.className = penalty === "DNF" ? "dnf" : penalty === "+2" ? "penalty" : "";
+        timerEl.textContent = penalty === "DNF" ? `${format(rawMs)} (DNF)` : penalty === "+2" ? `${format(rawMs + 2000)} (+2)` : format(rawMs);
+        setStatus("Đã lưu lượt giải");
+        render();
+      }
+      function handlePress() {
+        if (phase === "idle") beginInspection();
+        else if (phase === "inspection") {
+          phase = "armed";
+          timerEl.classList.add("ready");
+          setStatus("Thả phím để bắt đầu");
+          updateInspection();
+        } else if (phase === "running") finishSolve();
+      }
+      function handleRelease() {
+        if (phase === "armed") beginSolve();
+      }
+      function trimmedAverage(count) {
+        if (solves.length < count) return "--";
+        const times = solves.slice(-count).map(effective).sort((a,b) => a-b).slice(1,-1);
+        if (times.some(value => !Number.isFinite(value))) return "DNF";
+        return format(times.reduce((sum,value) => sum + value, 0) / times.length);
+      }
+      function render() {
+        const valid = solves.map(effective).filter(Number.isFinite);
+        $("solveCount").textContent = `${solves.length} lượt`;
+        $("best").textContent = valid.length ? format(Math.min(...valid)) : "--";
+        $("mean").textContent = valid.length ? format(valid.reduce((a,b) => a+b, 0) / valid.length) : "--";
+        $("ao5").textContent = trimmedAverage(5);
+        $("ao12").textContent = trimmedAverage(12);
+        const tbody = $("results");
+        tbody.replaceChildren();
+        if (!solves.length) {
+          const row = document.createElement("tr"), cell = document.createElement("td");
+          cell.colSpan = 3; cell.className = "empty"; cell.textContent = "Chưa có lượt giải — bắt đầu thử nhé!";
+          row.appendChild(cell); tbody.appendChild(row); return;
+        }
+        [...solves].reverse().forEach((solve,index) => {
+          const number = solves.length - index;
+          const row = document.createElement("tr");
+          const num = document.createElement("td"), value = document.createElement("td"), action = document.createElement("td");
+          const button = document.createElement("button");
+          num.textContent = String(number); value.textContent = resultLabel(solve);
+          button.className = "small-btn"; button.type = "button"; button.textContent = "Xem";
+          button.addEventListener("click", () => showDetails(solve, number));
+          action.appendChild(button); row.append(num,value,action); tbody.appendChild(row);
+        });
+      }
+      function showDetails(solve, number) {
+        $("detailTitle").textContent = `Chi tiết lượt ${number}`;
+        $("detailScramble").textContent = solve.scramble;
+        $("detailTime").textContent = resultLabel(solve);
+        dialog.showModal();
+      }
+      document.addEventListener("keydown", event => {
+        if (event.code !== "Space" || dialog.open || event.repeat) return;
+        if (event.target instanceof HTMLElement && (event.target.isContentEditable || ["INPUT","BUTTON","TEXTAREA","SELECT"].includes(event.target.tagName))) return;
+        event.preventDefault();
+        if (keyHeld) return;
+        keyHeld = true;
+        handlePress();
+      });
+      document.addEventListener("keyup", event => {
+        if (event.code !== "Space") return;
+        event.preventDefault();
+        keyHeld = false;
+        handleRelease();
+      });
+      window.addEventListener("blur", () => { keyHeld = false; handleRelease(); });
+      timerEl.addEventListener("click", () => {
+        if (phase === "idle") beginInspection();
+        else if (phase === "inspection") beginSolve();
+        else if (phase === "running") finishSolve();
+      });
+      $("closeDialog").addEventListener("click", () => dialog.close());
+      dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+      generateNextScramble();
+      render();
+    })();
+  </script>
+</body>
+</html>
