@@ -15,6 +15,9 @@
             --silver: #94a3b8;
             --bronze: #d97706;
             --border-color: #334155;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --success-color: #22c55e;
         }
 
         * {
@@ -22,7 +25,6 @@
             user-select: none;
         }
 
-        /* Khóa màn hình cố định 100vh, tuyệt đối không cuộn trang */
         html, body {
             width: 100%;
             height: 100vh;
@@ -37,8 +39,13 @@
             align-items: center;
         }
 
+        /* Navigation / Header */
         header {
-            text-align: center;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
             flex-shrink: 0;
         }
@@ -46,9 +53,35 @@
         h1 {
             color: var(--accent-color);
             margin: 0;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             letter-spacing: 1px;
             text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: #334155;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-color);
+            color: #0f172a;
         }
 
         /* Scramble Box */
@@ -61,40 +94,73 @@
             font-weight: bold;
             letter-spacing: 1.5px;
             color: #f1f5f9;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border: 1px solid var(--border-color);
             text-align: center;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             flex-shrink: 0;
         }
 
         /* Timer Display */
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 2px 0;
+            flex-shrink: 0;
+            position: relative;
+        }
+
         .timer-display {
             font-size: 4.8rem;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            margin: 2px 0;
             color: #ffffff;
             cursor: pointer;
             line-height: 1;
-            flex-shrink: 0;
             transition: color 0.1s ease;
         }
 
-        .timer-display.holding { color: #f59e0b; }
-        .timer-display.ready { color: #22c55e; }
-        .timer-display.running { color: #ef4444; }
+        .timer-display.inspection { color: var(--warning-color); }
+        .timer-display.holding { color: var(--warning-color); }
+        .timer-display.ready { color: var(--success-color); }
+        .timer-display.running { color: var(--danger-color); }
 
         .hint {
             color: #64748b;
             font-size: 0.82rem;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             text-align: center;
             flex-shrink: 0;
         }
 
-        /* Thanh trạng thái lượt giải & Nhập kết quả (Thay thế cho card 'Lượt gần đây') */
+        /* Penalty Buttons (+2, DNF) for current solve */
+        .penalty-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-penalty {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: #94a3b8;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-penalty.active {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        /* Status Bar (Solves inline & Controls) */
         .status-bar {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -106,7 +172,7 @@
             gap: 12px;
             width: 100%;
             max-width: 900px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-shrink: 0;
             flex-wrap: wrap;
         }
@@ -125,12 +191,12 @@
             font-family: monospace;
             font-size: 0.85rem;
             color: #cbd5e1;
-            min-width: 60px;
+            min-width: 65px;
             text-align: center;
         }
 
-        .solve-pill.best { border-color: #22c55e; color: #4ade80; font-weight: bold; }
-        .solve-pill.worst { border-color: #ef4444; color: #f87171; font-weight: bold; }
+        .solve-pill.best { border-color: var(--success-color); color: #4ade80; font-weight: bold; }
+        .solve-pill.worst { border-color: var(--danger-color); color: #f87171; font-weight: bold; }
 
         .ao5-summary {
             font-weight: bold;
@@ -156,7 +222,7 @@
             color: white;
             font-size: 0.85rem;
             outline: none;
-            width: 140px;
+            width: 130px;
             user-select: text;
         }
 
@@ -181,12 +247,12 @@
         .btn:active { transform: scale(0.96); }
 
         .btn-reset {
-            background: #ef4444;
+            background: var(--danger-color);
             color: white;
         }
         .btn-reset:hover { background: #dc2626; }
 
-        /* Bảng Xếp Hạng - Chiếm toàn bộ phần chiều cao còn lại */
+        /* Leaderboard Box */
         .leaderboard-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -195,7 +261,7 @@
             width: 100%;
             max-width: 900px;
             flex: 1;
-            min-height: 0; /* Cho phép co giãn trong flex container */
+            min-height: 0;
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
@@ -231,7 +297,6 @@
             border-radius: 6px;
         }
 
-        /* Tùy chỉnh thanh cuộn bên trong bảng */
         .table-wrapper::-webkit-scrollbar {
             width: 6px;
         }
@@ -270,18 +335,36 @@
         .rank-1 { color: var(--gold); font-weight: bold; }
         .rank-2 { color: var(--silver); font-weight: bold; }
         .rank-3 { color: var(--bronze); font-weight: bold; }
+        .empty-msg {
+            color: #64748b;
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>Rubik Timer HCC</h1>
+        <div class="nav-links">
+            <!-- Nút kết nối tài khoản & quay về index.html -->
+            <a href="index.html" class="nav-btn">
+                <span>&#128100;</span> Tài khoản / Trang chủ
+            </a>
+        </div>
     </header>
 
     <div class="scramble-box" id="scramble">Đang khởi tạo scramble...</div>
 
-    <div class="timer-display" id="timer">0.00</div>
-    <div class="hint">Nhấn giữ phím <b>SPACE</b> đến khi đổi sang màu xanh để chuẩn bị</div>
+    <div class="timer-container">
+        <div class="timer-display" id="timer">0.00</div>
+        <div class="penalty-bar" id="penalty-bar" style="display: none;">
+            <button class="btn-penalty" id="btn-plus2" onclick="togglePenalty('+2')">+2</button>
+            <button class="btn-penalty" id="btn-dnf" onclick="togglePenalty('DNF')">DNF</button>
+        </div>
+    </div>
+    <div class="hint" id="hint-msg">Nhấn <b>SPACE</b> để bắt đầu 15s quan sát (Inspection) | Nhấn giữ <b>SPACE</b> để chuẩn bị giải</div>
 
     <!-- Thanh trạng thái lượt giải & Nhập kết quả -->
     <div class="status-bar">
@@ -333,16 +416,14 @@
     </div>
 
     <script>
-        // Dữ liệu mẫu Bảng xếp hạng
-        let leaderboard = [
-            { name: "Nguyễn Văn A", solves: [9.50, 10.20, 8.90, 11.00, 9.80], best: 8.90, ao5: 9.83 },
-            { name: "Trần Thị B", solves: [10.10, 12.00, 9.50, 10.50, 10.00], best: 9.50, ao5: 10.20 },
-            { name: "Lê Hoàng C", solves: [11.20, 10.80, 10.50, 12.10, 10.90], best: 10.50, ao5: 10.97 },
-            { name: "Phạm D", solves: [12.50, 11.90, 11.50, 13.00, 11.80], best: 11.50, ao5: 12.07 }
-        ];
+        // Bảng xếp hạng khởi tạo rỗng (Đã xóa dữ liệu ví dụ)
+        let leaderboard = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard')) || [];
 
-        let currentSolves = [];
-        let timerState = 'stopped'; // stopped, holding, ready, running
+        let currentSolves = []; // Lưu danh sách lượt giải: { rawTime: number, penalty: 'OK'|'+2'|'DNF', finalTime: number }
+        let timerState = 'idle'; // idle, inspection, holding, ready, running
+        let inspectionTime = 15;
+        let inspectionInterval = null;
+        let inspectionStart = 0;
         let holdTimeout = null;
         let startTime = 0;
         let timerInterval = null;
@@ -365,12 +446,33 @@
             document.getElementById('scramble').innerText = scramble.join(" ");
         }
 
-        function calculateAo5(times) {
-            if (times.length < 5) return null;
+        // Format thời gian hiển thị (+2 hay DNF)
+        function formatSolve(solve) {
+            if (!solve) return "--";
+            if (solve.penalty === 'DNF') return "DNF";
+            if (solve.penalty === '+2') return (solve.rawTime + 2).toFixed(2) + "+";
+            return solve.rawTime.toFixed(2);
+        }
+
+        function getNumericValue(solve) {
+            if (!solve || solve.penalty === 'DNF') return Infinity;
+            if (solve.penalty === '+2') return solve.rawTime + 2;
+            return solve.rawTime;
+        }
+
+        function calculateAo5(solves) {
+            if (solves.length < 5) return null;
+            let times = solves.map(s => getNumericValue(s));
+            
+            // Nếu từ 2 lần DNF trở lên -> Ao5 là DNF
+            let dnfCount = times.filter(t => t === Infinity).length;
+            if (dnfCount >= 2) return "DNF";
+
             let sorted = [...times].sort((a, b) => a - b);
-            // Loại bỏ lượt tốt nhất và tệ nhất
+            // Loại bỏ 1 lần tốt nhất (index 0) và 1 lần tệ nhất (index 4)
             let middle3 = sorted.slice(1, 4);
-            let avg = middle3.reduce((sum, val) => sum + val, 0) / 3;
+            let sum = middle3.reduce((acc, val) => acc + val, 0);
+            let avg = sum / 3;
             return Math.round(avg * 100) / 100;
         }
 
@@ -379,32 +481,47 @@
                 let pill = document.getElementById(`p${i}`);
                 pill.classList.remove('best', 'worst');
 
-                if (currentSolves[i - 1] !== undefined) {
-                    pill.innerText = `${i}: ${currentSolves[i - 1].toFixed(2)}s`;
+                let solve = currentSolves[i - 1];
+                if (solve) {
+                    pill.innerText = `${i}: ${formatSolve(solve)}`;
                 } else {
                     pill.innerText = `${i}: --`;
                 }
             }
 
             if (currentSolves.length === 5) {
-                let sorted = [...currentSolves].map((val, idx) => ({ val, idx })).sort((a, b) => a.val - b.val);
-                let minIdx = sorted[0].idx;
-                let maxIdx = sorted[4].idx;
+                let numericTimes = currentSolves.map((s, idx) => ({ val: getNumericValue(s), idx }));
+                numericTimes.sort((a, b) => a.val - b.val);
+                
+                let minIdx = numericTimes[0].idx;
+                let maxIdx = numericTimes[4].idx;
 
                 document.getElementById(`p${minIdx + 1}`).classList.add('best');
                 document.getElementById(`p${maxIdx + 1}`).classList.add('worst');
 
                 let ao5 = calculateAo5(currentSolves);
-                document.getElementById('ao5-val').innerText = ao5.toFixed(2) + "s";
+                document.getElementById('ao5-val').innerText = typeof ao5 === 'number' ? ao5.toFixed(2) + "s" : ao5;
             } else {
                 document.getElementById('ao5-val').innerText = "--";
             }
         }
 
         function renderLeaderboard() {
-            leaderboard.sort((a, b) => a.ao5 - b.ao5);
+            // Sắp xếp theo Ao5 (DNF xếp cuối)
+            leaderboard.sort((a, b) => {
+                if (a.ao5 === "DNF") return 1;
+                if (b.ao5 === "DNF") return -1;
+                return a.ao5 - b.ao5;
+            });
+
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào. Hãy hoàn thành lượt giải để lưu vào bảng xếp hạng!</td></tr>';
+                document.getElementById('total-participants').innerText = '0 Thí sinh';
+                return;
+            }
 
             leaderboard.forEach((entry, index) => {
                 const tr = document.createElement('tr');
@@ -413,16 +530,19 @@
                 else if (index === 1) rankClass = 'rank-2';
                 else if (index === 2) rankClass = 'rank-3';
 
+                let ao5Str = typeof entry.ao5 === 'number' ? entry.ao5.toFixed(2) + "s" : "DNF";
+                let bestStr = entry.best === Infinity ? "DNF" : entry.best.toFixed(2);
+
                 tr.innerHTML = `
                     <td class="${rankClass}">${index + 1}</td>
                     <td style="font-weight: 600;">${entry.name}</td>
-                    <td>${entry.solves[0].toFixed(2)}</td>
-                    <td>${entry.solves[1].toFixed(2)}</td>
-                    <td>${entry.solves[2].toFixed(2)}</td>
-                    <td>${entry.solves[3].toFixed(2)}</td>
-                    <td>${entry.solves[4].toFixed(2)}</td>
-                    <td style="color: #22c55e;">${entry.best.toFixed(2)}</td>
-                    <td style="font-weight: bold; color: var(--accent-color);">${entry.ao5.toFixed(2)}s</td>
+                    <td>${entry.solves[0]}</td>
+                    <td>${entry.solves[1]}</td>
+                    <td>${entry.solves[2]}</td>
+                    <td>${entry.solves[3]}</td>
+                    <td>${entry.solves[4]}</td>
+                    <td style="color: #22c55e;">${bestStr}</td>
+                    <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -445,35 +565,88 @@
             }
 
             let ao5 = calculateAo5(currentSolves);
-            let best = Math.min(...currentSolves);
+            let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
+
+            let solveStrings = currentSolves.map(s => formatSolve(s));
 
             leaderboard.push({
                 name: name,
-                solves: [...currentSolves],
-                best: best,
+                solves: solveStrings,
+                best: bestNumeric,
                 ao5: ao5
             });
 
+            localStorage.setItem('rubik_hcc_leaderboard', JSON.stringify(leaderboard));
             renderLeaderboard();
             nameInput.value = '';
             resetSession();
-            alert(`Đã lưu thành tích Ao5 (${ao5.toFixed(2)}s) của ${name} vào Bảng Xếp Hạng!`);
+            alert(`Đã lưu thành tích Ao5 của ${name} vào Bảng Xếp Hạng!`);
         }
 
         function resetSession() {
             currentSolves = [];
-            updateSessionUI();
+            clearInterval(inspectionInterval);
+            clearInterval(timerInterval);
+            timerState = 'idle';
+            document.getElementById('timer').className = 'timer-display';
             document.getElementById('timer').innerText = "0.00";
+            document.getElementById('penalty-bar').style.display = 'none';
+            document.getElementById('hint-msg').innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát (Inspection) | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+            updateSessionUI();
             generateScramble();
         }
 
-        // Đếm giờ
-        const timerEl = document.getElementById('timer');
+        // Xử lý phạt +2 / DNF cho lượt giải vừa hoàn thành
+        function togglePenalty(type) {
+            if (currentSolves.length === 0) return;
+            let lastIndex = currentSolves.length - 1;
+            let solve = currentSolves[lastIndex];
+
+            if (solve.penalty === type) {
+                solve.penalty = 'OK';
+            } else {
+                solve.penalty = type;
+            }
+
+            document.getElementById('btn-plus2').classList.toggle('active', solve.penalty === '+2');
+            document.getElementById('btn-dnf').classList.toggle('active', solve.penalty === 'DNF');
+
+            document.getElementById('timer').innerText = formatSolve(solve);
+            updateSessionUI();
+        }
+
+        // Bắt đầu 15s Inspection
+        function startInspection() {
+            timerState = 'inspection';
+            inspectionTime = 15;
+            const timerEl = document.getElementById('timer');
+            timerEl.className = 'timer-display inspection';
+            timerEl.innerText = inspectionTime;
+
+            inspectionStart = Date.now();
+            inspectionInterval = setInterval(() => {
+                let elapsed = Math.floor((Date.now() - inspectionStart) / 1000);
+                let remaining = 15 - elapsed;
+
+                if (remaining > 0) {
+                    timerEl.innerText = remaining;
+                } else if (remaining === 0 || remaining === -1) {
+                    timerEl.innerText = "+2";
+                } else {
+                    timerEl.innerText = "DNF";
+                    clearInterval(inspectionInterval);
+                }
+            }, 500);
+        }
 
         function startTimer() {
+            clearInterval(inspectionInterval);
             startTime = Date.now();
             timerState = 'running';
+            const timerEl = document.getElementById('timer');
             timerEl.className = 'timer-display running';
+            document.getElementById('penalty-bar').style.display = 'none';
+
             timerInterval = setInterval(() => {
                 let elapsed = (Date.now() - startTime) / 1000;
                 timerEl.innerText = elapsed.toFixed(2);
@@ -483,17 +656,41 @@
         function stopTimer() {
             clearInterval(timerInterval);
             let elapsed = (Date.now() - startTime) / 1000;
-            timerEl.innerText = elapsed.toFixed(2);
-            timerState = 'stopped';
+            const timerEl = document.getElementById('timer');
             timerEl.className = 'timer-display';
+            timerState = 'idle';
+
+            let initialPenalty = 'OK';
+            // Kiểm tra xem lúc khởi chạy timer đang ở mức +2 hay DNF do quá thời gian inspection
+            let inspectionElapsed = (Date.now() - inspectionStart) / 1000;
+            if (inspectionStart > 0) {
+                if (inspectionElapsed > 17) {
+                    initialPenalty = 'DNF';
+                } else if (inspectionElapsed > 15) {
+                    initialPenalty = '+2';
+                }
+            }
+
+            let newSolve = {
+                rawTime: elapsed,
+                penalty: initialPenalty
+            };
 
             if (currentSolves.length < 5) {
-                currentSolves.push(elapsed);
+                currentSolves.push(newSolve);
+                timerEl.innerText = formatSolve(newSolve);
+                
+                // Hiển thị nút phạt +2 / DNF cho lượt vừa bấm
+                document.getElementById('penalty-bar').style.display = 'flex';
+                document.getElementById('btn-plus2').classList.toggle('active', initialPenalty === '+2');
+                document.getElementById('btn-dnf').classList.toggle('active', initialPenalty === 'DNF');
+
                 updateSessionUI();
                 generateScramble();
             }
         }
 
+        // Xử lý sự kiện bàn phím (SPACE)
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
                 if (e.target.tagName === 'INPUT') return;
@@ -501,12 +698,14 @@
 
                 if (timerState === 'running') {
                     stopTimer();
-                } else if (timerState === 'stopped' && currentSolves.length < 5) {
+                } else if (timerState === 'idle' && currentSolves.length < 5) {
+                    startInspection();
+                } else if (timerState === 'inspection') {
                     timerState = 'holding';
-                    timerEl.className = 'timer-display holding';
+                    document.getElementById('timer').className = 'timer-display holding';
                     holdTimeout = setTimeout(() => {
                         timerState = 'ready';
-                        timerEl.className = 'timer-display ready';
+                        document.getElementById('timer').className = 'timer-display ready';
                     }, 300);
                 }
             }
@@ -519,8 +718,8 @@
 
                 if (timerState === 'holding') {
                     clearTimeout(holdTimeout);
-                    timerState = 'stopped';
-                    timerEl.className = 'timer-display';
+                    timerState = 'inspection';
+                    document.getElementById('timer').className = 'timer-display inspection';
                 } else if (timerState === 'ready') {
                     startTimer();
                 }
