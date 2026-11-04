@@ -470,7 +470,7 @@
         function getLinkedAccountFromIndex() {
             if (user) {
                 const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-                return { id: user.id, name: name };
+                return { id: user.id, name: name, isAuth: true };
             }
 
             const storageKeys = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account'];
@@ -481,13 +481,13 @@
                         let parsed = JSON.parse(val);
                         if (typeof parsed === 'object' && parsed !== null) {
                             let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
-                            if (name) return { id: parsed.id || name, name: name };
+                            if (name) return { id: parsed.id || name, name: name, isAuth: false };
                         } else if (typeof parsed === 'string' && parsed.trim() !== '') {
-                            return { id: parsed, name: parsed };
+                            return { id: parsed, name: parsed, isAuth: false };
                         }
                     } catch (e) {
                         if (typeof val === 'string' && val.trim() !== '') {
-                            return { id: val, name: val };
+                            return { id: val, name: val, isAuth: false };
                         }
                     }
                 }
@@ -501,7 +501,7 @@
                         const userObj = sessionData?.user || sessionData?.currentSession?.user;
                         if (userObj) {
                             const name = userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
-                            return { id: userObj.id, name: name };
+                            return { id: userObj.id, name: name, isAuth: true };
                         }
                     } catch (e) {}
                 }
@@ -707,11 +707,13 @@
 
             let dailyEntries = [];
             const linkedAcc = getLinkedAccountFromIndex();
+            let isOnlineAvailable = false;
 
             if (client) {
                 try {
                     const { data, error } = await client.from(TABLE).select('*').eq('cube_type', '333_ao5').order('created_at', { ascending: true });
                     if (!error && data) {
+                        isOnlineAvailable = true;
                         const dailyRows = data.filter(row => row && row.created_at && row.created_at.startsWith(selectedDate));
                         const userMap = new Map();
                         for (const row of dailyRows) {
@@ -753,9 +755,8 @@
                             });
                         }
 
-                        // Sửa lỗi check đã hoàn thành trong ngày
-                        if (isSelectedToday() && linkedAcc) {
-                            const doneToday = dailyRows.some(row => (user && row.user_id === user.id) || (row.player_name === linkedAcc.name));
+                        if (isSelectedToday() && linkedAcc && linkedAcc.isAuth) {
+                            const doneToday = dailyRows.some(row => (user && row.user_id === user.id));
                             const btnSave = document.getElementById('btn-save');
                             if (doneToday && btnSave) {
                                 btnSave.disabled = true;
@@ -764,55 +765,56 @@
                                 if (hintEl) hintEl.innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
                             }
                         }
-                        return;
                     }
                 } catch (e) {
                     console.warn("Lỗi tải BXH từ Supabase:", e);
                 }
             }
 
-            // Fallback Offline LocalStorage
-            let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
-            let filteredLocal = localData.filter(e => e && e.date === selectedDate);
-            filteredLocal.sort((a, b) => (a.ao5 === "DNF" ? 1 : b.ao5 === "DNF" ? -1 : a.ao5 - b.ao5));
+            // Nếu không dùng được Online hoặc account chỉ là Local Offline -> Dùng dữ liệu LocalStorage
+            if (!isOnlineAvailable || (linkedAcc && !linkedAcc.isAuth)) {
+                let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
+                let filteredLocal = localData.filter(e => e && e.date === selectedDate);
+                filteredLocal.sort((a, b) => (a.ao5 === "DNF" ? 1 : b.ao5 === "DNF" ? -1 : a.ao5 - b.ao5));
 
-            tbody.innerHTML = '';
-            if (filteredLocal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
-                let countEl = document.getElementById('total-participants');
-                if (countEl) countEl.innerText = '0 Thí sinh';
-            } else {
-                let countEl = document.getElementById('total-participants');
-                if (countEl) countEl.innerText = `${filteredLocal.length} Thí sinh`;
+                if (!isOnlineAvailable) {
+                    tbody.innerHTML = '';
+                    if (filteredLocal.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
+                        let countEl = document.getElementById('total-participants');
+                        if (countEl) countEl.innerText = '0 Thí sinh';
+                    } else {
+                        let countEl = document.getElementById('total-participants');
+                        if (countEl) countEl.innerText = `${filteredLocal.length} Thí sinh`;
 
-                filteredLocal.forEach((entry, index) => {
-                    const tr = document.createElement('tr');
-                    let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-                    let ao5Str = typeof entry.ao5 === 'number' ? entry.ao5.toFixed(2) + "s" : "DNF";
-                    let bestStr = entry.best === Infinity ? "DNF" : entry.best.toFixed(2);
+                        filteredLocal.forEach((entry, index) => {
+                            const tr = document.createElement('tr');
+                            let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                            let ao5Str = typeof entry.ao5 === 'number' ? entry.ao5.toFixed(2) + "s" : "DNF";
+                            let bestStr = entry.best === Infinity ? "DNF" : entry.best.toFixed(2);
 
-                    tr.innerHTML = `
-                        <td class="${rankClass}">${index + 1}</td>
-                        <td style="font-weight: 600;">${entry.name}</td>
-                        <td>${entry.solves[0]}</td>
-                        <td>${entry.solves[1]}</td>
-                        <td>${entry.solves[2]}</td>
-                        <td>${entry.solves[3]}</td>
-                        <td>${entry.solves[4]}</td>
-                        <td style="color: #22c55e;">${bestStr}</td>
-                        <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                            tr.innerHTML = `
+                                <td class="${rankClass}">${index + 1}</td>
+                                <td style="font-weight: 600;">${entry.name}</td>
+                                <td>${entry.solves[0]}</td>
+                                <td>${entry.solves[1]}</td>
+                                <td>${entry.solves[2]}</td>
+                                <td>${entry.solves[3]}</td>
+                                <td>${entry.solves[4]}</td>
+                                <td style="color: #22c55e;">${bestStr}</td>
+                                <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                }
                 
-                if (isSelectedToday() && linkedAcc) {
-                    const doneToday = filteredLocal.some(row => row.name === linkedAcc.name);
+                // Ở chế độ Offline LocalStorage, thay vì khóa nút, ta cho phép Ghi đè kết quả trong ngày
+                if (isSelectedToday() && linkedAcc && !linkedAcc.isAuth) {
                     const btnSave = document.getElementById('btn-save');
-                    if (doneToday && btnSave) {
-                        btnSave.disabled = true;
-                        btnSave.innerText = "Đã Thi Hôm Nay";
-                        let hintEl = document.getElementById('hint-msg');
-                        if (hintEl) hintEl.innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
+                    if (btnSave) {
+                        btnSave.disabled = false;
+                        btnSave.innerText = "Lưu BXH Hôm Nay (Offline)";
                     }
                 }
             }
@@ -840,7 +842,8 @@
             let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
             let solveStrings = currentSolves.map(s => formatSolve(s));
 
-            if (client && user) {
+            // Ưu tiên lưu Online nếu có tài khoản Auth hợp lệ
+            if (client && user && linkedAcc.isAuth) {
                 const rawMs = typeof ao5 === 'number' ? Math.round(ao5 * 1000) : 99999999;
                 const solveTime = typeof ao5 === 'number' ? ao5 : 99999;
                 const penaltyVal = ao5 === 'DNF' ? 'DNF' : 'OK';
@@ -866,14 +869,28 @@
                     return;
                 }
             } else {
+                // Lưu Offline nếu dùng tài khoản khách/tên tự nhập
                 let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
-                localData.push({
-                    name: linkedAcc.name,
-                    date: today,
-                    solves: solveStrings,
-                    best: bestNumeric,
-                    ao5: ao5
-                });
+                
+                // Ghi đè kết quả nếu đã thi hôm nay (ở chế độ Offline)
+                let existingIndex = localData.findIndex(e => e.name === linkedAcc.name && e.date === today);
+                if (existingIndex > -1) {
+                    localData[existingIndex] = {
+                        name: linkedAcc.name,
+                        date: today,
+                        solves: solveStrings,
+                        best: bestNumeric,
+                        ao5: ao5
+                    };
+                } else {
+                    localData.push({
+                        name: linkedAcc.name,
+                        date: today,
+                        solves: solveStrings,
+                        best: bestNumeric,
+                        ao5: ao5
+                    });
+                }
                 localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(localData));
             }
 
