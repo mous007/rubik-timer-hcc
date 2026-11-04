@@ -386,7 +386,7 @@
         <div class="leaderboard-header">
             <div class="leaderboard-title-group">
                 <h2>BẢNG XẾP HẠNG GIẢI ĐUA</h2>
-                <input type="date" id="leaderboard-date" class="date-picker" onchange="renderLeaderboard()">
+                <input type="date" id="leaderboard-date" class="date-picker" onchange="onDateChange()">
             </div>
             <span class="badge" id="total-participants">0 Thí sinh</span>
         </div>
@@ -441,7 +441,6 @@
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
 
-        // Phân loại trục xoay WCA
         function getAxis(move) {
             if (move === "R" || move === "L") return 0;
             if (move === "U" || move === "D") return 1;
@@ -449,7 +448,6 @@
             return -1;
         }
 
-        // Sinh Scramble chuẩn không lặp trục
         function generateScramble() {
             let scramble = [];
             let lastMove = "";
@@ -498,9 +496,35 @@
             return null;
         }
 
+        // Kiểm tra xem ngày đang chọn có phải ngày HÔM NAY không
+        function isSelectedToday() {
+            const selectedDate = document.getElementById('leaderboard-date').value;
+            return selectedDate === getTodayString();
+        }
+
+        // Xử lý sự kiện thay đổi ngày ở ô Lịch
+        function onDateChange() {
+            renderLeaderboard();
+            updateUIForSelectedDate();
+        }
+
+        // Cập nhật trạng thái giao diện theo ngày được chọn
+        function updateUIForSelectedDate() {
+            const btnSave = document.getElementById('btn-save');
+            const hintMsg = document.getElementById('hint-msg');
+            const selectedDate = document.getElementById('leaderboard-date').value;
+
+            if (!isSelectedToday()) {
+                btnSave.disabled = true;
+                btnSave.innerText = "Chỉ Được Xem (Chỉ Thi Ngày Hôm Nay)";
+                hintMsg.innerHTML = `👁️ Bạn đang xem BXH ngày <b>${selectedDate}</b>. Đổi về ngày hôm nay (<b>${getTodayString()}</b>) để thi đấu!`;
+            } else {
+                updateAccountDisplay();
+            }
+        }
+
         async function checkUserSession() {
             const userDisplay = document.getElementById('user-display');
-            const btnSave = document.getElementById('btn-save');
 
             if (client) {
                 try {
@@ -511,7 +535,7 @@
                         userDisplay.innerText = `👤 ${name}`;
                         userDisplay.style.borderColor = "var(--accent-color)";
                         userDisplay.style.color = "var(--accent-color)";
-                        await renderLeaderboard();
+                        updateUIForSelectedDate();
                         return;
                     }
                 } catch (e) {}
@@ -526,12 +550,32 @@
                 userDisplay.innerText = "⚠️ Chưa Đăng Nhập";
                 userDisplay.style.borderColor = "var(--danger-color)";
                 userDisplay.style.color = "var(--danger-color)";
-                btnSave.disabled = true;
-                btnSave.innerText = "Vui Lòng Đăng Nhập";
-                document.getElementById('hint-msg').innerHTML = "⚠️ Bạn cần đăng nhập tài khoản ở <a href='./index.html' style='color:var(--accent-color)'>Trang chủ</a> để tham gia thi!";
             }
 
-            await renderLeaderboard();
+            updateUIForSelectedDate();
+        }
+
+        function updateAccountDisplay() {
+            const btnSave = document.getElementById('btn-save');
+            const hintMsg = document.getElementById('hint-msg');
+            const activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
+
+            if (!isSelectedToday()) {
+                btnSave.disabled = true;
+                btnSave.innerText = "Chỉ Được Xem (Chỉ Thi Ngày Hôm Nay)";
+                hintMsg.innerHTML = `👁️ Bạn đang xem BXH ngày <b>${document.getElementById('leaderboard-date').value}</b>. Hãy chuyển về ngày hôm nay để thi!`;
+                return;
+            }
+
+            if (!activeName) {
+                btnSave.disabled = true;
+                btnSave.innerText = "Vui Lòng Đăng Nhập";
+                hintMsg.innerHTML = "⚠️ Bạn cần đăng nhập tài khoản ở <a href='./index.html' style='color:var(--accent-color)'>Trang chủ</a> để tham gia thi!";
+            } else {
+                btnSave.disabled = false;
+                btnSave.innerText = "Lưu BXH Hôm Nay";
+                hintMsg.innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+            }
         }
 
         function formatSolve(solve) {
@@ -639,7 +683,7 @@
                             });
                         }
 
-                        if (user) {
+                        if (isSelectedToday() && user) {
                             const today = getTodayString();
                             const doneToday = dailyRows.some(row => row.user_id === user.id);
                             const btnSave = document.getElementById('btn-save');
@@ -647,9 +691,6 @@
                                 btnSave.disabled = true;
                                 btnSave.innerText = "Đã Thi Hôm Nay";
                                 document.getElementById('hint-msg').innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
-                            } else {
-                                btnSave.disabled = false;
-                                btnSave.innerText = "Lưu BXH Hôm Nay";
                             }
                         }
                         return;
@@ -657,7 +698,6 @@
                 } catch (e) {}
             }
 
-            // Chế độ dự phòng khi không kết nối được máy chủ
             let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
             let filteredLocal = localData.filter(e => e.date === selectedDate);
             filteredLocal.sort((a, b) => (a.ao5 === "DNF" ? 1 : b.ao5 === "DNF" ? -1 : a.ao5 - b.ao5));
@@ -691,6 +731,11 @@
         }
 
         async function saveToLeaderboard() {
+            if (!isSelectedToday()) {
+                alert("Bạn chỉ được tham gia thi đấu trong ngày HÔM NAY! Các ngày khác chỉ được xem.");
+                return;
+            }
+
             let userName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
             if (!userName) {
                 alert("Bạn cần đăng nhập tài khoản ở trang chính (index.html) trước khi thi!");
@@ -760,150 +805,11 @@
             document.getElementById('timer').className = 'timer-display';
             document.getElementById('timer').innerText = "0.00";
             document.getElementById('penalty-bar').style.display = 'none';
-            document.getElementById('hint-msg').innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
             
+            updateUIForSelectedDate();
             updateSessionUI();
             generateScramble();
         }
 
         function togglePenalty(type) {
             if (currentSolves.length === 0) return;
-            let lastIndex = currentSolves.length - 1;
-            let solve = currentSolves[lastIndex];
-
-            if (solve.penalty === type) {
-                solve.penalty = 'OK';
-            } else {
-                solve.penalty = type;
-            }
-
-            document.getElementById('btn-plus2').classList.toggle('active', solve.penalty === '+2');
-            document.getElementById('btn-dnf').classList.toggle('active', solve.penalty === 'DNF');
-
-            document.getElementById('timer').innerText = formatSolve(solve);
-            updateSessionUI();
-        }
-
-        function startInspection() {
-            timerState = 'inspection';
-            const timerEl = document.getElementById('timer');
-            timerEl.className = 'timer-display inspection';
-            timerEl.innerText = 15;
-
-            inspectionStart = Date.now();
-            inspectionInterval = setInterval(() => {
-                let elapsed = (Date.now() - inspectionStart) / 1000;
-                let remaining = Math.ceil(15 - elapsed);
-
-                if (elapsed >= 17) {
-                    timerEl.innerText = "DNF";
-                    timerEl.className = "timer-display running";
-                } else if (elapsed >= 15) {
-                    timerEl.innerText = "+2";
-                    timerEl.className = "timer-display holding";
-                } else {
-                    timerEl.innerText = remaining > 0 ? remaining : 1;
-                }
-            }, 50);
-        }
-
-        function startTimer() {
-            if (inspectionStart > 0) {
-                let inspElapsed = (Date.now() - inspectionStart) / 1000;
-                if (inspElapsed >= 17) {
-                    currentSolvePenalty = 'DNF';
-                } else if (inspElapsed >= 15) {
-                    currentSolvePenalty = '+2';
-                } else {
-                    currentSolvePenalty = 'OK';
-                }
-            } else {
-                currentSolvePenalty = 'OK';
-            }
-
-            clearInterval(inspectionInterval);
-            startTime = Date.now();
-            timerState = 'running';
-            const timerEl = document.getElementById('timer');
-            timerEl.className = 'timer-display running';
-            document.getElementById('penalty-bar').style.display = 'none';
-
-            timerInterval = setInterval(() => {
-                let elapsed = (Date.now() - startTime) / 1000;
-                timerEl.innerText = elapsed.toFixed(2);
-            }, 10);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-            let elapsed = (Date.now() - startTime) / 1000;
-            const timerEl = document.getElementById('timer');
-            timerEl.className = 'timer-display';
-            timerState = 'idle';
-
-            let newSolve = {
-                rawTime: elapsed,
-                penalty: currentSolvePenalty
-            };
-
-            if (currentSolves.length < 5) {
-                currentSolves.push(newSolve);
-                timerEl.innerText = formatSolve(newSolve);
-                
-                document.getElementById('penalty-bar').style.display = 'flex';
-                document.getElementById('btn-plus2').classList.toggle('active', currentSolvePenalty === '+2');
-                document.getElementById('btn-dnf').classList.toggle('active', currentSolvePenalty === 'DNF');
-
-                updateSessionUI();
-                generateScramble();
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !e.repeat) {
-                if (e.target.tagName === 'INPUT') return;
-                e.preventDefault();
-
-                let activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
-                if (!activeName) {
-                    alert("Vui lòng đăng nhập ở trang chính (index.html) trước khi thi!");
-                    return;
-                }
-
-                if (timerState === 'running') {
-                    stopTimer();
-                } else if (timerState === 'idle' && currentSolves.length < 5) {
-                    startInspection();
-                } else if (timerState === 'inspection') {
-                    timerState = 'holding';
-                    document.getElementById('timer').className = 'timer-display holding';
-                    holdTimeout = setTimeout(() => {
-                        timerState = 'ready';
-                        document.getElementById('timer').className = 'timer-display ready';
-                    }, 300);
-                }
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            if (e.code === 'Space') {
-                if (e.target.tagName === 'INPUT') return;
-                e.preventDefault();
-
-                if (timerState === 'holding') {
-                    clearTimeout(holdTimeout);
-                    timerState = 'inspection';
-                    document.getElementById('timer').className = 'timer-display inspection';
-                } else if (timerState === 'ready') {
-                    startTimer();
-                }
-            }
-        });
-
-        // Khởi tạo chạy Scramble đầu tiên ngay lập tức
-        document.getElementById('leaderboard-date').value = getTodayString();
-        generateScramble();
-        checkUserSession();
-    </script>
-</body>
-</html>
