@@ -57,6 +57,25 @@
             text-transform: uppercase;
         }
 
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* ĐỒNG HỒ THỜI GIAN THỰC */
+        .live-clock {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
         .user-nav-group {
             display: flex;
             gap: 10px;
@@ -352,12 +371,15 @@
 <body>
 
     <header>
-        <h1>Rubik Timer HCC</h1>
+        <div class="header-left-group">
+            <h1>Rubik Timer HCC</h1>
+            <div class="live-clock" id="live-clock">00:00:00</div>
+        </div>
         <div class="user-nav-group">
             <span class="user-badge" id="user-display" onclick="changePlayerName()" title="Nhấn để đổi tên">👤 Đang tải...</span>
             <a href="index.html" class="nav-btn">
                 <span>🏠</span> Trang chủ
-            </a> quét
+            </a>
         </div>
     </header>
 
@@ -456,13 +478,23 @@
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
 
-        // HÀM NHẬN DIỆN TÊN TÀI KHOẢN THÔNG MINH (Quét toàn bộ LocalStorage)
+        // CHẠY ĐỒNG HỒ THỜI GIAN THỰC
+        function startLiveClock() {
+            const clockEl = document.getElementById('live-clock');
+            if (!clockEl) return;
+            setInterval(() => {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                clockEl.innerText = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        }
+
         function getPlayerName() {
-            // 1. Kiểm tra nếu đã lưu trực tiếp trong phiên làm việc của timer
             let timerName = localStorage.getItem('rubik_timer_player_name');
             if (timerName) return timerName;
 
-            // 2. Quét tất cả các key có thể chứa tên đăng nhập từ index.html
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 const val = localStorage.getItem(key);
@@ -475,14 +507,12 @@
                         if (name) return name;
                     }
                 } catch (e) {
-                    // Nếu là chuỗi thuần túy và có vẻ hợp lệ làm tên
                     if (key.toLowerCase().includes('user') || key.toLowerCase().includes('name') || key.toLowerCase().includes('account')) {
                         if (val.length < 30 && !val.includes('{')) return val;
                     }
                 }
             }
 
-            // 3. Nếu vẫn không có, tạo tên mặc định và lưu tạm để người dùng có thể đổi
             let defaultName = "Cuber_" + Math.floor(Math.random() * 900 + 100);
             localStorage.setItem('rubik_timer_player_name', defaultName);
             return defaultName;
@@ -774,7 +804,6 @@
                 } catch (e) {}
             }
 
-            // Luôn lưu dự phòng xuống LocalStorage để chắc chắn hiển thị ngay lập tức
             let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
             let existingIndex = localData.findIndex(e => e.name === playerName && e.date === today);
             let newPayload = { name: playerName, date: today, solves: solveStrings, best: bestNumeric, ao5: ao5 };
@@ -964,6 +993,7 @@
             const dateEl = document.getElementById('leaderboard-date');
             if (dateEl) dateEl.value = getTodayString();
             
+            startLiveClock();
             generateScramble();
             checkUserSession();
         }
