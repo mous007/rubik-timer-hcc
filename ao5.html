@@ -1,192 +1,369 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#10131c">
-<title>Rubik Timer HCC - Đua Top Ao5</title>
-<style>
-:root {
-    color-scheme: dark;
-    --line: #293653;
-    --muted: #9baac5;
-    --text: #f4f7ff;
-    --green: #73e4b2;
-    --yellow: #f6d47b;
-    --red: #ff8897;
-    --accent: #7c9dff;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik Timer HCC - Chế Độ Ao5</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --gold: #fbbf24;
+            --silver: #94a3b8;
+            --bronze: #d97706;
+            --border-color: #334155;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --success-color: #22c55e;
+        }
 
-* { box-sizing: border-box; user-select: none; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-html, body {
-    width: 100%;
-    height: 100vh;
-    margin: 0;
-    padding: 12px 18px;
-    overflow: hidden; /* Khóa cuộn toàn trang */
-    background: radial-gradient(ellipse at 50% -25%, #293a57, #0b1020 52%);
-    color: var(--text);
-    font: 500 15px/1.5 Inter, Segoe UI, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+        html, body {
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 12px 20px;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-.shell {
-    width: min(1200px, 100%);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+        header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
 
-/* Header đồng bộ index.html */
-.topbar {
-    flex: 0 0 auto;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
+        h1 {
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
 
-.brand { display: flex; align-items: center; gap: 12px; }
-.logo {
-    width: 38px; height: 38px; border-radius: 12px;
-    background: linear-gradient(145deg, #7ea0ff, #445ec7);
-    display: grid; place-items: center; font-size: 20px;
-}
-.brand-title { font-weight: 780; }
-.brand-sub { color: var(--muted); font-size: .72rem; }
+        .user-nav-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-.account-actions { display: flex; align-items: center; gap: 8px; }
-.badge {
-    padding: 5px 10px; border-radius: 8px; background: #1a2440;
-    border: 1px solid var(--line); font-size: .78rem; color: var(--green);
-}
-.btn, .small-btn {
-    border: 1px solid #53679a; border-radius: 10px; background: #1a2440;
-    color: var(--text); font: inherit; cursor: pointer; transition: all .15s ease;
-}
-.btn { padding: 8px 14px; font-size: .8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; }
-.btn:hover { background: #28375e; border-color: var(--accent); }
-.btn.primary { background: linear-gradient(180deg, #7c9dff, #5d7ce8); border-color: #7c9dff; color: #0b1020; font-weight: 700; }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
+        .user-badge {
+            background: #0f172a;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
 
-.card {
-    padding: 14px 18px; border: 1px solid #2a3855; border-radius: 20px;
-    background: linear-gradient(155deg, #192238ed, #121a2bed);
-    box-shadow: 0 18px 55px #0003;
-}
+        .nav-btn {
+            background: #334155;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+            border: 1px solid var(--border-color);
+        }
 
-/* Scramble */
-.scramble-box {
-    text-align: center; background: #0c132255; border: 1px solid #2a3855;
-    padding: 10px 16px; border-radius: 14px; color: #e3eaff;
-    font-size: clamp(.95rem, 1.3vw, 1.2rem); font-family: monospace; letter-spacing: 1px;
-    flex-shrink: 0;
-}
+        .nav-btn:hover {
+            background: var(--accent-color);
+            color: #0f172a;
+        }
 
-/* Timer Zone */
-.timer-card {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 15px; text-align: center; flex-shrink: 0;
-    background: radial-gradient(ellipse at 50% 40%, #202e4caa, transparent 55%), linear-gradient(145deg, #172138, #111827);
-}
+        .scramble-box {
+            background: var(--card-bg);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            flex-shrink: 0;
+        }
 
-#timer {
-    font-size: clamp(4rem, 9vw, 6.5rem); line-height: 1; font-weight: 780;
-    letter-spacing: -.05em; font-variant-numeric: tabular-nums; cursor: pointer;
-    margin: 4px 0; color: var(--text); transition: color .1s;
-}
-#timer.inspection { color: var(--yellow); }
-#timer.ready { color: var(--green); }
-#timer.running { color: var(--red); }
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 2px 0;
+            flex-shrink: 0;
+        }
 
-.penalty-bar { display: flex; gap: 8px; margin-top: 4px; }
-.small-btn { padding: 4px 10px; font-size: .75rem; }
-.small-btn.active { background: var(--red); border-color: var(--red); color: white; }
+        .timer-display {
+            font-size: 4.8rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.1s ease;
+        }
 
-.hint { color: var(--muted); font-size: .78rem; margin-top: 6px; }
+        .timer-display.inspection { color: var(--warning-color); }
+        .timer-display.holding { color: var(--warning-color); }
+        .timer-display.ready { color: var(--success-color); }
+        .timer-display.running { color: var(--danger-color); }
 
-/* Status Bar & Solves Inline */
-.status-bar {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    flex-shrink: 0; flex-wrap: wrap;
-}
+        .hint {
+            color: #64748b;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-align: center;
+            flex-shrink: 0;
+        }
 
-.solves-inline { display: flex; gap: 6px; }
-.solve-pill {
-    background: #111a2b; border: 1px solid var(--line); padding: 5px 10px;
-    border-radius: 8px; font-family: monospace; font-size: .85rem; min-width: 65px; text-align: center;
-}
-.solve-pill.best { border-color: var(--green); color: var(--green); font-weight: bold; }
-.solve-pill.worst { border-color: var(--red); color: var(--red); font-weight: bold; }
+        .penalty-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
 
-.ao5-val {
-    background: #111a2b; border: 1px dashed var(--accent); padding: 5px 12px;
-    border-radius: 8px; font-weight: 700; color: var(--accent); font-size: .9rem;
-}
+        .btn-penalty {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: #94a3b8;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-/* Bảng xếp hạng */
-.leaderboard-card {
-    flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
-}
+        .btn-penalty.active {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
 
-.section-title {
-    display: flex; justify-content: space-between; align-items: center;
-    margin: 0 0 10px; font-size: .95rem; font-weight: 700;
-}
+        .status-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
 
-.date-picker {
-    background: #111a2b; color: var(--text); border: 1px solid var(--line);
-    padding: 3px 8px; border-radius: 6px; font-size: .8rem; outline: none;
-}
+        .solves-inline {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
 
-.scroll-area { flex: 1; min-height: 0; overflow-y: auto; }
-.scroll-area::-webkit-scrollbar { width: 6px; }
-.scroll-area::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+        .solve-pill {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            min-width: 65px;
+            text-align: center;
+        }
 
-table { width: 100%; border-collapse: collapse; text-align: center; font-size: .82rem; }
-th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); }
-th { position: sticky; top: 0; background: #192238; color: var(--muted); font-size: .7rem; text-transform: uppercase; z-index: 5; }
+        .solve-pill.best { border-color: var(--success-color); color: #4ade80; font-weight: bold; }
+        .solve-pill.worst { border-color: var(--danger-color); color: #f87171; font-weight: bold; }
 
-.rank-1 { color: var(--yellow); font-weight: bold; }
-.rank-2 { color: #c0c0c0; font-weight: bold; }
-.rank-3 { color: #cd7f32; font-weight: bold; }
-.empty { text-align: center; color: var(--muted); padding: 20px; font-style: italic; }
-</style>
+        .ao5-summary {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--accent-color);
+            background: #0f172a;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px dashed var(--accent-color);
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn:hover { background: var(--accent-hover); }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+        .btn-reset {
+            background: var(--danger-color);
+            color: white;
+        }
+        .btn-reset:hover { background: #dc2626; }
+
+        .leaderboard-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 900px;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .leaderboard-header h2 {
+            font-size: 1.1rem;
+            margin: 0;
+            color: var(--accent-color);
+        }
+
+        .date-picker {
+            background: #0f172a;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .badge {
+            background: #334155;
+            color: #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+        }
+
+        .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
+
+        .table-wrapper::-webkit-scrollbar { width: 6px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #0f172a; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.88rem;
+        }
+
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        .rank-1 { color: var(--gold); font-weight: bold; }
+        .rank-2 { color: var(--silver); font-weight: bold; }
+        .rank-3 { color: var(--bronze); font-weight: bold; }
+        .empty-msg {
+            color: #64748b;
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
 
-<div class="shell">
-    <header class="topbar">
-        <div class="brand">
-            <div class="logo">🏆</div>
-            <div>
-                <div class="brand-title">Rubik Timer - Đua Top Ao5</div>
-                <div class="brand-sub">Mỗi ngày 1 lượt thi chuẩn WCA</div>
-            </div>
-        </div>
-        <div class="account-actions">
-            <span id="userBadge" class="badge">Đang kiểm tra tài khoản…</span>
-            <a href="./index.html" class="btn"> Trang chủ / Luyện tập</a>
+    <header>
+        <h1>Rubik Timer HCC</h1>
+        <div class="user-nav-group">
+            <span class="user-badge" id="user-display">Chưa đăng nhập</span>
+            <a href="index.html" class="nav-btn">
+                <span>&#128100;</span> Trang chủ / Tài khoản
+            </a>
         </div>
     </header>
 
-    <div class="scramble-box" id="scramble">Đang tải scramble…</div>
+    <div class="scramble-box" id="scramble">Đang khởi tạo scramble...</div>
 
-    <section class="card timer-card">
-        <div id="timer">0.00</div>
-        <div class="penalty-bar" id="penaltyBar" style="display:none;">
-            <button class="small-btn" id="btnPlus2" onclick="togglePenalty('+2')">+2</button>
-            <button class="small-btn" id="btnDnf" onclick="togglePenalty('DNF')">DNF</button>
+    <div class="timer-container">
+        <div class="timer-display" id="timer">0.00</div>
+        <div class="penalty-bar" id="penalty-bar" style="display: none;">
+            <button class="btn-penalty" id="btn-plus2" onclick="togglePenalty('+2')">+2</button>
+            <button class="btn-penalty" id="btn-dnf" onclick="togglePenalty('DNF')">DNF</button>
         </div>
-        <div class="hint" id="hintMsg">Nhấn <kbd>SPACE</kbd> để bắt đầu 15s quan sát (Inspection) | Giữ <kbd>SPACE</kbd> để chuẩn bị</div>
-    </section>
+    </div>
+    <div class="hint" id="hint-msg">Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải</div>
 
-    <div class="card status-bar">
+    <div class="status-bar">
         <div class="solves-inline">
             <div class="solve-pill" id="p1">1: --</div>
             <div class="solve-pill" id="p2">2: --</div>
@@ -194,315 +371,442 @@ th { position: sticky; top: 0; background: #192238; color: var(--muted); font-si
             <div class="solve-pill" id="p4">4: --</div>
             <div class="solve-pill" id="p5">5: --</div>
         </div>
-        <div class="ao5-val">Ao5: <span id="ao5Val">--</span></div>
-        <div>
-            <button class="btn primary" id="btnSave" onclick="saveToLeaderboard()">Lưu BXH Hôm Nay</button>
-            <button class="btn" onclick="resetSession()">Reset</button>
+
+        <div class="ao5-summary">
+            Ao5: <span id="ao5-val">--</span>
+        </div>
+
+        <div class="actions-group">
+            <button class="btn" id="btn-save" onclick="saveToLeaderboard()">Lưu BXH Hôm Nay</button>
+            <button class="btn btn-reset" onclick="resetSession()">Reset</button>
         </div>
     </div>
 
-    <section class="card leaderboard-card">
-        <div class="section-title">
-            <span>BẢNG XẾP HẠNG HẰNG NGÀY</span>
-            <input type="date" id="leaderboardDate" class="date-picker" onchange="renderLeaderboard()">
+    <div class="leaderboard-card">
+        <div class="leaderboard-header">
+            <div class="leaderboard-title-group">
+                <h2>BẢNG XẾP HẠNG GIẢI ĐUA</h2>
+                <input type="date" id="leaderboard-date" class="date-picker" onchange="renderLeaderboard()">
+            </div>
+            <span class="badge" id="total-participants">0 Thí sinh</span>
         </div>
-        <div class="scroll-area">
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
                         <th>Hạng</th>
-                        <th>Cuber</th>
+                        <th>Thí sinh</th>
                         <th>Lần 1</th>
                         <th>Lần 2</th>
                         <th>Lần 3</th>
                         <th>Lần 4</th>
                         <th>Lần 5</th>
-                        <th>Best</th>
+                        <th>Tốt nhất</th>
                         <th>Ao5</th>
                     </tr>
                 </thead>
-                <tbody id="leaderboardRows"></tbody>
+                <tbody id="leaderboard-body">
+                </tbody>
             </table>
         </div>
-    </section>
-</div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.10/dist/umd/supabase.js"></script>
-<script>
-(() => {
-    "use strict";
-
-    const SUPABASE_URL = "https://bmglojinjtodeczsgjxh.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep";
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
-    });
-
-    let user = null;
-    let leaderboard = JSON.parse(localStorage.getItem('rubik_hcc_ao5_daily')) || [];
-    let currentSolves = [];
-    let timerState = 'idle'; // idle, inspection, holding, ready, running
-    let inspectionStart = 0;
-    let inspectionInterval = null;
-    let holdTimeout = null;
-    let startTime = 0;
-    let timerInterval = null;
-    let currentScramble = "";
-
-    const $ = id => document.getElementById(id);
-
-    function getTodayString() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
-    async function makeScramble() {
-        try {
-            const { randomScrambleForEvent } = await import("https://cdn.cubing.net/v0/js/cubing/scramble");
-            currentScramble = (await randomScrambleForEvent("333")).toString();
-            $("scramble").textContent = currentScramble;
-        } catch (e) {
-            $("scramble").textContent = "D3 F2 U2 L2 B2 R2 U2 F2 U2 R2 B' R U B2 R' D' F L R2 U";
+    <script>
+        function getTodayString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
-    }
 
-    async function checkUserSession() {
-        const { data } = await client.auth.getSession();
-        if (data?.session?.user) {
-            user = data.session.user;
-            const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-            $("userBadge").textContent = `👤 ${name}`;
-            $("userBadge").style.color = "var(--green)";
-            
-            const today = getTodayString();
-            const doneToday = leaderboard.some(e => e.userId === user.id && e.date === today);
-            if (doneToday) {
-                $("btnSave").disabled = true;
-                $("btnSave").textContent = "Đã Thi Hôm Nay";
-                $("hintMsg").textContent = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay. Hãy quay lại vào ngày mai!";
+        // Tự động nhận diện Session từ Supabase Auth của index.html
+        function getLoggedInUser() {
+            let user = localStorage.getItem('currentUser') || localStorage.getItem('username');
+            if (user) return user;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('-auth-token')) {
+                    try {
+                        const sessionData = JSON.parse(localStorage.getItem(key));
+                        const u = sessionData?.user || sessionData?.currentSession?.user;
+                        if (u) {
+                            return u.user_metadata?.display_name || u.email?.split('@')[0] || "Player";
+                        }
+                    } catch (e) {}
+                }
             }
-        } else {
-            $("userBadge").textContent = "⚠️ Chưa đăng nhập";
-            $("userBadge").style.color = "var(--red)";
-            $("btnSave").disabled = true;
-            $("btnSave").textContent = "Cần đăng nhập";
-            $("hintMsg").innerHTML = "⚠️ Vui lòng đăng nhập ở <a href='./index.html' style='color:var(--accent)'>Trang chủ</a> để tham gia giải đua!";
-        }
-    }
-
-    function formatTime(s) {
-        if (!s) return "--";
-        if (s.penalty === 'DNF') return "DNF";
-        if (s.penalty === '+2') return ((s.raw + 2000) / 1000).toFixed(2) + "+";
-        return (s.raw / 1000).toFixed(2);
-    }
-
-    function getNumVal(s) {
-        if (!s || s.penalty === 'DNF') return Infinity;
-        if (s.penalty === '+2') return s.raw + 2000;
-        return s.raw;
-    }
-
-    function calcAo5(solves) {
-        if (solves.length < 5) return null;
-        let vals = solves.map(getNumVal);
-        let dnfCount = vals.filter(v => v === Infinity).length;
-        if (dnfCount >= 2) return "DNF";
-        let middle = [...vals].sort((a, b) => a - b).slice(1, 4);
-        return Math.round(middle.reduce((a, b) => a + b, 0) / 3);
-    }
-
-    function updateSessionUI() {
-        for (let i = 1; i <= 5; i++) {
-            let pill = $(`p${i}`);
-            pill.classList.remove('best', 'worst');
-            pill.textContent = `${i}: ${formatTime(currentSolves[i - 1])}`;
+            return null;
         }
 
-        if (currentSolves.length === 5) {
-            let times = currentSolves.map((s, idx) => ({ v: getNumVal(s), idx })).sort((a, b) => a.v - b.v);
-            $(`p${times[0].idx + 1}`).classList.add('best');
-            $(`p${times[4].idx + 1}`).classList.add('worst');
-
-            let ao5 = calcAo5(currentSolves);
-            $("ao5Val").textContent = ao5 === "DNF" ? "DNF" : (ao5 / 1000).toFixed(2) + "s";
-        } else {
-            $("ao5Val").textContent = "--";
-        }
-    }
-
-    window.togglePenalty = function(type) {
-        if (!currentSolves.length) return;
-        let last = currentSolves[currentSolves.length - 1];
-        last.penalty = (last.penalty === type) ? 'OK' : type;
+        let currentUser = getLoggedInUser();
+        let leaderboard = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
         
-        $("btnPlus2").classList.toggle('active', last.penalty === '+2');
-        $("btnDnf").classList.toggle('active', last.penalty === 'DNF');
-        $("timer").textContent = formatTime(last);
-        updateSessionUI();
-    };
+        let currentSolves = [];
+        let timerState = 'idle';
+        let inspectionInterval = null;
+        let inspectionStart = 0;
+        let currentSolvePenalty = 'OK'; // Lưu hình phạt tính từ thời điểm BẮT ĐẦU GIẢI
+        let holdTimeout = null;
+        let startTime = 0;
+        let timerInterval = null;
 
-    function renderLeaderboard() {
-        const dateVal = $("leaderboardDate").value;
-        const rows = leaderboard.filter(e => e.date === dateVal);
-        rows.sort((a, b) => (a.ao5 === "DNF" ? 1 : b.ao5 === "DNF" ? -1 : a.ao5 - b.ao5));
+        const moves = ["R", "L", "U", "D", "F", "B"];
+        const modifiers = ["", "'", "2"];
 
-        const body = $("leaderboardRows");
-        body.innerHTML = '';
+        document.getElementById('leaderboard-date').value = getTodayString();
+        
+        function updateAccountDisplay() {
+            currentUser = getLoggedInUser();
+            const userDisplay = document.getElementById('user-display');
+            const btnSave = document.getElementById('btn-save');
 
-        if (!rows.length) {
-            body.innerHTML = `<tr><td colspan="9" class="empty">Chưa có lượt thi nào trong ngày ${dateVal}</td></tr>`;
-            return;
+            if (currentUser) {
+                userDisplay.innerText = `👤 ${currentUser}`;
+                userDisplay.style.borderColor = "var(--accent-color)";
+                userDisplay.style.color = "var(--accent-color)";
+                
+                const today = getTodayString();
+                const alreadySubmitted = leaderboard.some(entry => entry.name === currentUser && entry.date === today);
+                
+                if (alreadySubmitted) {
+                    btnSave.disabled = true;
+                    btnSave.innerText = "Đã Thi Hôm Nay";
+                    document.getElementById('hint-msg').innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
+                } else {
+                    btnSave.disabled = false;
+                    btnSave.innerText = "Lưu BXH Hôm Nay";
+                }
+            } else {
+                userDisplay.innerText = "⚠️ Chưa Đăng Nhập";
+                userDisplay.style.borderColor = "var(--danger-color)";
+                userDisplay.style.color = "var(--danger-color)";
+                btnSave.disabled = true;
+                btnSave.innerText = "Vui Lòng Đăng Nhập";
+                document.getElementById('hint-msg').innerText = "⚠️ Bạn cần đăng nhập tài khoản ở Trang chủ (index.html) để tham gia thi!";
+            }
         }
 
-        rows.forEach((e, idx) => {
-            const tr = document.createElement('tr');
-            const rankCls = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 3 ? 'rank-3' : '';
-            const ao5Str = e.ao5 === "DNF" ? "DNF" : (e.ao5 / 1000).toFixed(2) + "s";
-            const bestStr = e.best === Infinity ? "DNF" : (e.best / 1000).toFixed(2);
-
-            tr.innerHTML = `
-                <td class="${rankCls}">${idx + 1}</td>
-                <td style="font-weight:600;">${e.name}</td>
-                <td>${e.solves[0]}</td><td>${e.solves[1]}</td><td>${e.solves[2]}</td><td>${e.solves[3]}</td><td>${e.solves[4]}</td>
-                <td style="color:var(--green);">${bestStr}</td>
-                <td style="color:var(--accent);font-weight:bold;">${ao5Str}</td>
-            `;
-            body.appendChild(tr);
-        });
-    }
-
-    window.saveToLeaderboard = function() {
-        if (!user) return alert("Bạn chưa đăng nhập!");
-        const today = getTodayString();
-        if (leaderboard.some(e => e.userId === user.id && e.date === today)) {
-            return alert("Mỗi cuber chỉ được thi 1 lần mỗi ngày!");
-        }
-        if (currentSolves.length < 5) {
-            return alert("Cần hoàn thành đủ 5 lượt giải!");
+        function generateScramble() {
+            let scramble = [];
+            let lastMove = "";
+            for (let i = 0; i < 20; i++) {
+                let move;
+                do {
+                    move = moves[Math.floor(Math.random() * moves.length)];
+                } while (move === lastMove);
+                lastMove = move;
+                let mod = modifiers[Math.floor(Math.random() * modifiers.length)];
+                scramble.push(move + mod);
+            }
+            document.getElementById('scramble').innerText = scramble.join(" ");
         }
 
-        const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-        const ao5 = calcAo5(currentSolves);
-        const best = Math.min(...currentSolves.map(getNumVal));
-
-        leaderboard.push({
-            userId: user.id,
-            name: name,
-            date: today,
-            solves: currentSolves.map(formatTime),
-            best: best,
-            ao5: ao5
-        });
-
-        localStorage.setItem('rubik_hcc_ao5_daily', JSON.stringify(leaderboard));
-        $("leaderboardDate").value = today;
-        renderLeaderboard();
-        checkUserSession();
-        resetSession();
-        alert("Đã lưu kết quả thi hôm nay thành công!");
-    };
-
-    window.resetSession = function() {
-        currentSolves = [];
-        clearInterval(inspectionInterval);
-        clearInterval(timerInterval);
-        timerState = 'idle';
-        $("timer").className = '';
-        $("timer").textContent = "0.00";
-        $("penaltyBar").style.display = 'none';
-        updateSessionUI();
-        makeScramble();
-    };
-
-    function startInspection() {
-        timerState = 'inspection';
-        $("timer").className = 'inspection';
-        $("timer").textContent = "15";
-        inspectionStart = performance.now();
-
-        inspectionInterval = setInterval(() => {
-            let elapsed = Math.floor((performance.now() - inspectionStart) / 1000);
-            let rem = 15 - elapsed;
-            if (rem > 0) $("timer").textContent = rem;
-            else if (rem >= -2) $("timer").textContent = "+2";
-            else { $("timer").textContent = "DNF"; clearInterval(inspectionInterval); }
-        }, 300);
-    }
-
-    function startTimer() {
-        clearInterval(inspectionInterval);
-        timerState = 'running';
-        $("timer").className = 'running';
-        $("penaltyBar").style.display = 'none';
-        startTime = performance.now();
-
-        timerInterval = setInterval(() => {
-            $("timer").textContent = ((performance.now() - startTime) / 1000).toFixed(2);
-        }, 10);
-    }
-
-    function stopTimer() {
-        clearInterval(timerInterval);
-        let raw = Math.round(performance.now() - startTime);
-        timerState = 'idle';
-        $("timer").className = '';
-
-        let inspTime = (performance.now() - inspectionStart) / 1000;
-        let pen = 'OK';
-        if (inspectionStart > 0) {
-            if (inspTime > 17) pen = 'DNF';
-            else if (inspTime > 15) pen = '+2';
+        function formatSolve(solve) {
+            if (!solve) return "--";
+            if (solve.penalty === 'DNF') return "DNF";
+            if (solve.penalty === '+2') return (solve.rawTime + 2).toFixed(2) + "+";
+            return solve.rawTime.toFixed(2);
         }
 
-        let solve = { raw, penalty: pen };
-        if (currentSolves.length < 5) {
-            currentSolves.push(solve);
-            $("timer").textContent = formatTime(solve);
-            $("penaltyBar").style.display = 'flex';
-            $("btnPlus2").classList.toggle('active', pen === '+2');
-            $("btnDnf").classList.toggle('active', pen === 'DNF');
+        function getNumericValue(solve) {
+            if (!solve || solve.penalty === 'DNF') return Infinity;
+            if (solve.penalty === '+2') return solve.rawTime + 2;
+            return solve.rawTime;
+        }
+
+        function calculateAo5(solves) {
+            if (solves.length < 5) return null;
+            let times = solves.map(s => getNumericValue(s));
+            let dnfCount = times.filter(t => t === Infinity).length;
+            if (dnfCount >= 2) return "DNF";
+
+            let sorted = [...times].sort((a, b) => a - b);
+            let middle3 = sorted.slice(1, 4);
+            let sum = middle3.reduce((acc, val) => acc + val, 0);
+            let avg = sum / 3;
+            return Math.round(avg * 100) / 100;
+        }
+
+        function updateSessionUI() {
+            for (let i = 1; i <= 5; i++) {
+                let pill = document.getElementById(`p${i}`);
+                pill.classList.remove('best', 'worst');
+
+                let solve = currentSolves[i - 1];
+                if (solve) {
+                    pill.innerText = `${i}: ${formatSolve(solve)}`;
+                } else {
+                    pill.innerText = `${i}: --`;
+                }
+            }
+
+            if (currentSolves.length === 5) {
+                let numericTimes = currentSolves.map((s, idx) => ({ val: getNumericValue(s), idx }));
+                numericTimes.sort((a, b) => a.val - b.val);
+                
+                let minIdx = numericTimes[0].idx;
+                let maxIdx = numericTimes[4].idx;
+
+                document.getElementById(`p${minIdx + 1}`).classList.add('best');
+                document.getElementById(`p${maxIdx + 1}`).classList.add('worst');
+
+                let ao5 = calculateAo5(currentSolves);
+                document.getElementById('ao5-val').innerText = typeof ao5 === 'number' ? ao5.toFixed(2) + "s" : ao5;
+            } else {
+                document.getElementById('ao5-val').innerText = "--";
+            }
+        }
+
+        function renderLeaderboard() {
+            const selectedDate = document.getElementById('leaderboard-date').value;
+            let dailyEntries = leaderboard.filter(entry => entry.date === selectedDate);
+
+            dailyEntries.sort((a, b) => {
+                if (a.ao5 === "DNF") return 1;
+                if (b.ao5 === "DNF") return -1;
+                return a.ao5 - b.ao5;
+            });
+
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            if (dailyEntries.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
+                document.getElementById('total-participants').innerText = '0 Thí sinh';
+                return;
+            }
+
+            dailyEntries.forEach((entry, index) => {
+                const tr = document.createElement('tr');
+                let rankClass = '';
+                if (index === 0) rankClass = 'rank-1';
+                else if (index === 1) rankClass = 'rank-2';
+                else if (index === 2) rankClass = 'rank-3';
+
+                let ao5Str = typeof entry.ao5 === 'number' ? entry.ao5.toFixed(2) + "s" : "DNF";
+                let bestStr = entry.best === Infinity ? "DNF" : entry.best.toFixed(2);
+
+                tr.innerHTML = `
+                    <td class="${rankClass}">${index + 1}</td>
+                    <td style="font-weight: 600;">${entry.name}</td>
+                    <td>${entry.solves[0]}</td>
+                    <td>${entry.solves[1]}</td>
+                    <td>${entry.solves[2]}</td>
+                    <td>${entry.solves[3]}</td>
+                    <td>${entry.solves[4]}</td>
+                    <td style="color: #22c55e;">${bestStr}</td>
+                    <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('total-participants').innerText = `${dailyEntries.length} Thí sinh`;
+        }
+
+        function saveToLeaderboard() {
+            if (!currentUser) {
+                alert("Bạn cần đăng nhập tài khoản ở trang chính (index.html) trước khi thi!");
+                return;
+            }
+
+            const today = getTodayString();
+            const alreadySubmitted = leaderboard.some(entry => entry.name === currentUser && entry.date === today);
+
+            if (alreadySubmitted) {
+                alert("Mỗi tài khoản chỉ được tham gia thi Ao5 một lần duy nhất trong ngày!");
+                return;
+            }
+
+            if (currentSolves.length < 5) {
+                alert("Bạn cần hoàn thành đủ 5 lượt giải Ao5 để lưu vào Bảng Xếp Hạng!");
+                return;
+            }
+
+            let ao5 = calculateAo5(currentSolves);
+            let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
+            let solveStrings = currentSolves.map(s => formatSolve(s));
+
+            leaderboard.push({
+                name: currentUser,
+                date: today,
+                solves: solveStrings,
+                best: bestNumeric,
+                ao5: ao5
+            });
+
+            localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(leaderboard));
+            
+            document.getElementById('leaderboard-date').value = today;
+            renderLeaderboard();
+            updateAccountDisplay();
+            resetSession();
+            alert(`Đã lưu thành tích Ao5 (${typeof ao5 === 'number' ? ao5.toFixed(2) + 's' : ao5}) của tài khoản ${currentUser} cho ngày hôm nay!`);
+        }
+
+        function resetSession() {
+            currentSolves = [];
+            clearInterval(inspectionInterval);
+            clearInterval(timerInterval);
+            timerState = 'idle';
+            inspectionStart = 0;
+            currentSolvePenalty = 'OK';
+            document.getElementById('timer').className = 'timer-display';
+            document.getElementById('timer').innerText = "0.00";
+            document.getElementById('penalty-bar').style.display = 'none';
+            
+            if (currentUser && !leaderboard.some(e => e.name === currentUser && e.date === getTodayString())) {
+                document.getElementById('hint-msg').innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+            }
             updateSessionUI();
-            makeScramble();
+            generateScramble();
         }
-    }
 
-    document.addEventListener('keydown', e => {
-        if (e.code !== 'Space' || e.repeat || e.target.tagName === 'INPUT') return;
-        e.preventDefault();
+        function togglePenalty(type) {
+            if (currentSolves.length === 0) return;
+            let lastIndex = currentSolves.length - 1;
+            let solve = currentSolves[lastIndex];
 
-        if (!user) return alert("Vui lòng đăng nhập ở trang chính trước khi thi!");
-        if (leaderboard.some(entry => entry.userId === user.id && entry.date === getTodayString())) return;
+            if (solve.penalty === type) {
+                solve.penalty = 'OK';
+            } else {
+                solve.penalty = type;
+            }
 
-        if (timerState === 'running') stopTimer();
-        else if (timerState === 'idle' && currentSolves.length < 5) startInspection();
-        else if (timerState === 'inspection') {
-            timerState = 'holding';
-            $("timer").className = 'holding';
-            holdTimeout = setTimeout(() => {
-                timerState = 'ready';
-                $("timer").className = 'ready';
-            }, 300);
+            document.getElementById('btn-plus2').classList.toggle('active', solve.penalty === '+2');
+            document.getElementById('btn-dnf').classList.toggle('active', solve.penalty === 'DNF');
+
+            document.getElementById('timer').innerText = formatSolve(solve);
+            updateSessionUI();
         }
-    });
 
-    document.addEventListener('keyup', e => {
-        if (e.code !== 'Space') return;
-        e.preventDefault();
-        if (timerState === 'holding') {
-            clearTimeout(holdTimeout);
+        function startInspection() {
             timerState = 'inspection';
-            $("timer").className = 'inspection';
-        } else if (timerState === 'ready') {
-            startTimer();
-        }
-    });
+            const timerEl = document.getElementById('timer');
+            timerEl.className = 'timer-display inspection';
+            timerEl.innerText = 15;
 
-    $("leaderboardDate").value = getTodayString();
-    checkUserSession();
-    makeScramble();
-    renderLeaderboard();
-})();
-</script>
+            inspectionStart = Date.now();
+            inspectionInterval = setInterval(() => {
+                let elapsed = (Date.now() - inspectionStart) / 1000;
+                let remaining = Math.ceil(15 - elapsed);
+
+                if (elapsed >= 17) {
+                    timerEl.innerText = "DNF";
+                    timerEl.className = "timer-display running";
+                } else if (elapsed >= 15) {
+                    timerEl.innerText = "+2";
+                    timerEl.className = "timer-display holding";
+                } else {
+                    timerEl.innerText = remaining > 0 ? remaining : 1;
+                }
+            }, 50);
+        }
+
+        function startTimer() {
+            // Chốt hình phạt theo đúng thời điểm BẮT ĐẦU GIẢI
+            if (inspectionStart > 0) {
+                let inspElapsed = (Date.now() - inspectionStart) / 1000;
+                if (inspElapsed >= 17) {
+                    currentSolvePenalty = 'DNF';
+                } else if (inspElapsed >= 15) {
+                    currentSolvePenalty = '+2';
+                } else {
+                    currentSolvePenalty = 'OK';
+                }
+            } else {
+                currentSolvePenalty = 'OK';
+            }
+
+            clearInterval(inspectionInterval);
+            startTime = Date.now();
+            timerState = 'running';
+            const timerEl = document.getElementById('timer');
+            timerEl.className = 'timer-display running';
+            document.getElementById('penalty-bar').style.display = 'none';
+
+            timerInterval = setInterval(() => {
+                let elapsed = (Date.now() - startTime) / 1000;
+                timerEl.innerText = elapsed.toFixed(2);
+            }, 10);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            let elapsed = (Date.now() - startTime) / 1000;
+            const timerEl = document.getElementById('timer');
+            timerEl.className = 'timer-display';
+            timerState = 'idle';
+
+            let newSolve = {
+                rawTime: elapsed,
+                penalty: currentSolvePenalty // Sử dụng hình phạt đã chốt khi bấm bắt đầu giải
+            };
+
+            if (currentSolves.length < 5) {
+                currentSolves.push(newSolve);
+                timerEl.innerText = formatSolve(newSolve);
+                
+                document.getElementById('penalty-bar').style.display = 'flex';
+                document.getElementById('btn-plus2').classList.toggle('active', currentSolvePenalty === '+2');
+                document.getElementById('btn-dnf').classList.toggle('active', currentSolvePenalty === 'DNF');
+
+                updateSessionUI();
+                generateScramble();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                if (e.target.tagName === 'INPUT') return;
+                e.preventDefault();
+
+                if (!currentUser) {
+                    alert("Vui lòng đăng nhập ở trang chính (index.html) trước khi thi!");
+                    return;
+                }
+
+                const today = getTodayString();
+                if (leaderboard.some(entry => entry.name === currentUser && entry.date === today)) {
+                    alert("Bạn đã hoàn thành lượt thi Ao5 của ngày hôm nay rồi!");
+                    return;
+                }
+
+                if (timerState === 'running') {
+                    stopTimer();
+                } else if (timerState === 'idle' && currentSolves.length < 5) {
+                    startInspection();
+                } else if (timerState === 'inspection') {
+                    timerState = 'holding';
+                    document.getElementById('timer').className = 'timer-display holding';
+                    holdTimeout = setTimeout(() => {
+                        timerState = 'ready';
+                        document.getElementById('timer').className = 'timer-display ready';
+                    }, 300);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                if (e.target.tagName === 'INPUT') return;
+                e.preventDefault();
+
+                if (timerState === 'holding') {
+                    clearTimeout(holdTimeout);
+                    timerState = 'inspection';
+                    document.getElementById('timer').className = 'timer-display inspection';
+                } else if (timerState === 'ready') {
+                    startTimer();
+                }
+            }
+        });
+
+        // Khởi tạo
+        updateAccountDisplay();
+        generateScramble();
+        renderLeaderboard();
+    </script>
 </body>
 </html>
