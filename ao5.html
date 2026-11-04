@@ -63,7 +63,6 @@
             gap: 15px;
         }
 
-        /* ĐỒNG HỒ THỜI GIAN THỰC */
         .live-clock {
             background: #1e293b;
             border: 1px solid var(--border-color);
@@ -90,7 +89,6 @@
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
-            cursor: pointer;
         }
 
         .nav-btn {
@@ -376,7 +374,7 @@
             <div class="live-clock" id="live-clock">00:00:00</div>
         </div>
         <div class="user-nav-group">
-            <span class="user-badge" id="user-display" onclick="changePlayerName()" title="Nhấn để đổi tên">👤 Đang tải...</span>
+            <span class="user-badge" id="user-display">Chưa đăng nhập</span>
             <a href="index.html" class="nav-btn">
                 <span>🏠</span> Trang chủ
             </a>
@@ -403,7 +401,7 @@
 
             <div class="actions-group">
                 <button class="btn" id="btn-save" onclick="saveToLeaderboard()" disabled>Lưu BXH Hôm Nay</button>
-                <div class="sys-msg" id="save-msg">Bạn cần giải đủ 5 lượt</div>
+                <div class="sys-msg" id="save-msg">Đang kiểm tra đăng nhập...</div>
                 <button class="btn btn-reset" id="btn-reset" onclick="resetSession()">Làm mới / Reset</button>
             </div>
         </div>
@@ -478,7 +476,6 @@
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
 
-        // CHẠY ĐỒNG HỒ THỜI GIAN THỰC
         function startLiveClock() {
             const clockEl = document.getElementById('live-clock');
             if (!clockEl) return;
@@ -491,40 +488,41 @@
             }, 1000);
         }
 
-        function getPlayerName() {
-            let timerName = localStorage.getItem('rubik_timer_player_name');
-            if (timerName) return timerName;
-
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const val = localStorage.getItem(key);
-                if (!val) continue;
-
-                try {
-                    let parsed = JSON.parse(val);
-                    if (typeof parsed === 'object' && parsed !== null) {
-                        let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
-                        if (name) return name;
-                    }
-                } catch (e) {
-                    if (key.toLowerCase().includes('user') || key.toLowerCase().includes('name') || key.toLowerCase().includes('account')) {
-                        if (val.length < 30 && !val.includes('{')) return val;
+        // CHỈ LẤY TÊN ĐĂNG NHẬP TỪ INDEX.HTML (KHÔNG TỰ TẠO HOẶC CHO ĐỔI TẠI ĐÂY)
+        function getLoggedInPlayerName() {
+            const keysToTry = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account', 'name'];
+            for (let key of keysToTry) {
+                let val = localStorage.getItem(key) || sessionStorage.getItem(key);
+                if (val) {
+                    try {
+                        let parsed = JSON.parse(val);
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
+                            if (name) return name;
+                        } else if (typeof parsed === 'string' && parsed.trim() !== '') {
+                            return parsed.trim();
+                        }
+                    } catch (e) {
+                        if (typeof val === 'string' && val.trim() !== '') return val.trim();
                     }
                 }
             }
 
-            let defaultName = "Cuber_" + Math.floor(Math.random() * 900 + 100);
-            localStorage.setItem('rubik_timer_player_name', defaultName);
-            return defaultName;
-        }
-
-        function changePlayerName() {
-            let current = getPlayerName();
-            let newName = prompt("Nhập tên hiển thị của bạn trên Bảng Xếp Hạng:", current);
-            if (newName && newName.trim() !== "") {
-                localStorage.setItem('rubik_timer_player_name', newName.trim());
-                checkUserSession();
+            // Quét tìm thông tin Supabase Auth nếu có
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('-auth-token') || key.includes('supabase'))) {
+                    try {
+                        const sessionData = JSON.parse(localStorage.getItem(key));
+                        const userObj = sessionData?.user || sessionData?.currentSession?.user;
+                        if (userObj) {
+                            return userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
+                        }
+                    } catch (e) {}
+                }
             }
+
+            return null; // Trả về null nếu chưa đăng nhập ở index.html
         }
 
         function getAxis(move) {
@@ -589,12 +587,18 @@
 
         async function checkUserSession() {
             const userDisplay = document.getElementById('user-display');
-            const playerName = getPlayerName();
+            const playerName = getLoggedInPlayerName();
 
             if (userDisplay) {
-                userDisplay.innerText = `👤 ${playerName} (Đổi)`;
-                userDisplay.style.borderColor = "var(--accent-color)";
-                userDisplay.style.color = "var(--accent-color)";
+                if (playerName) {
+                    userDisplay.innerText = `👤 ${playerName}`;
+                    userDisplay.style.borderColor = "var(--accent-color)";
+                    userDisplay.style.color = "var(--accent-color)";
+                } else {
+                    userDisplay.innerText = "⚠️ Chưa đăng nhập";
+                    userDisplay.style.borderColor = "var(--danger-color)";
+                    userDisplay.style.color = "var(--danger-color)";
+                }
             }
 
             await renderLeaderboard();
@@ -662,6 +666,7 @@
         function updateSaveButtonState() {
             const btnSave = document.getElementById('btn-save');
             const saveMsg = document.getElementById('save-msg');
+            const playerName = getLoggedInPlayerName();
 
             if (!isSelectedToday()) {
                 btnSave.disabled = true;
@@ -669,6 +674,15 @@
                 btnSave.innerText = "Chỉ Xem BXH Cũ";
                 saveMsg.innerText = "Đổi về ngày hôm nay để thi";
                 saveMsg.style.color = "var(--warning-color)";
+                return;
+            }
+
+            if (!playerName) {
+                btnSave.disabled = true;
+                btnSave.className = "btn";
+                btnSave.innerText = "Lưu BXH Hôm Nay";
+                saveMsg.innerHTML = "Vui lòng đăng nhập ở <a href='index.html' style='color:var(--accent-color)'>Trang chủ</a>!";
+                saveMsg.style.color = "var(--danger-color)";
                 return;
             }
 
@@ -684,7 +698,7 @@
             btnSave.disabled = false;
             btnSave.className = "btn btn-success";
             btnSave.innerText = "Lưu BXH Hôm Nay";
-            saveMsg.innerText = "Sẵn sàng lưu kết quả!";
+            saveMsg.innerText = `Sẵn sàng lưu cho [${playerName}]!`;
             saveMsg.style.color = "var(--success-color)";
         }
 
@@ -764,7 +778,12 @@
         async function saveToLeaderboard() {
             if (currentSolves.length < 5) return;
 
-            const playerName = getPlayerName();
+            const playerName = getLoggedInPlayerName();
+            if (!playerName) {
+                alert("Vui lòng đăng nhập ở Trang chủ (index.html) trước khi lưu kết quả!");
+                return;
+            }
+
             const today = getTodayString();
             let ao5 = calculateAo5(currentSolves);
             let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
@@ -942,7 +961,6 @@
         window.resetSession = resetSession;
         window.togglePenalty = togglePenalty;
         window.onDateChange = onDateChange;
-        window.changePlayerName = changePlayerName;
 
         window.addEventListener('storage', () => {
             checkUserSession();
@@ -954,6 +972,12 @@
                 e.preventDefault();
 
                 if (!isSelectedToday()) return;
+
+                const playerName = getLoggedInPlayerName();
+                if (!playerName) {
+                    alert("Vui lòng đăng nhập ở Trang chủ (index.html) trước khi thi!");
+                    return;
+                }
 
                 if (timerState === 'running') {
                     stopTimer();
