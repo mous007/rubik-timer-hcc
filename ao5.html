@@ -347,7 +347,7 @@
         <div class="user-nav-group">
             <span class="user-badge" id="user-display">Chưa đăng nhập</span>
             <a href="index.html" class="nav-btn">
-                <span>&#128100;</span> Trang chủ / Tài khoản
+                <span>👤</span> Trang chủ / Tài khoản
             </a>
         </div>
     </header>
@@ -441,6 +441,49 @@
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
 
+        function getLinkedAccountFromIndex() {
+            if (user) {
+                const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
+                return { id: user.id, name: name };
+            }
+
+            const storageKeys = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account'];
+            for (let key of storageKeys) {
+                let val = localStorage.getItem(key) || sessionStorage.getItem(key);
+                if (val) {
+                    try {
+                        let parsed = JSON.parse(val);
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
+                            if (name) return { id: parsed.id || name, name: name };
+                        } else if (typeof parsed === 'string' && parsed.trim() !== '') {
+                            return { id: parsed, name: parsed };
+                        }
+                    } catch (e) {
+                        if (typeof val === 'string' && val.trim() !== '') {
+                            return { id: val, name: val };
+                        }
+                    }
+                }
+            }
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('-auth-token') || key.includes('supabase'))) {
+                    try {
+                        const sessionData = JSON.parse(localStorage.getItem(key));
+                        const userObj = sessionData?.user || sessionData?.currentSession?.user;
+                        if (userObj) {
+                            const name = userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
+                            return { id: userObj.id, name: name };
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            return null;
+        }
+
         function getAxis(move) {
             if (move === "R" || move === "L") return 0;
             if (move === "U" || move === "D") return 1;
@@ -483,24 +526,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        function getLocalFallbackUser() {
-            let u = localStorage.getItem('currentUser') || localStorage.getItem('username');
-            if (u) return u;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('-auth-token')) {
-                    try {
-                        const sessionData = JSON.parse(localStorage.getItem(key));
-                        const userObj = sessionData?.user || sessionData?.currentSession?.user;
-                        if (userObj) {
-                            return userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
-                        }
-                    } catch (e) {}
-                }
-            }
-            return null;
-        }
-
         function isSelectedToday() {
             const el = document.getElementById('leaderboard-date');
             const selectedDate = el && el.value ? el.value : getTodayString();
@@ -539,25 +564,15 @@
                     const { data } = await client.auth.getSession();
                     if (data?.session?.user) {
                         user = data.session.user;
-                        const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-                        if (userDisplay) {
-                            userDisplay.innerText = `👤 ${name}`;
-                            userDisplay.style.borderColor = "var(--accent-color)";
-                            userDisplay.style.color = "var(--accent-color)";
-                        }
-                        updateUIForSelectedDate();
-                        await renderLeaderboard();
-                        return;
                     }
-                } catch (e) {
-                    console.warn("Lỗi kiểm tra session Supabase:", e);
-                }
+                } catch (e) {}
             }
 
-            let fallbackName = getLocalFallbackUser();
-            if (fallbackName) {
+            const linkedAcc = getLinkedAccountFromIndex();
+
+            if (linkedAcc) {
                 if (userDisplay) {
-                    userDisplay.innerText = `👤 ${fallbackName}`;
+                    userDisplay.innerText = `👤 ${linkedAcc.name}`;
                     userDisplay.style.borderColor = "var(--accent-color)";
                     userDisplay.style.color = "var(--accent-color)";
                 }
@@ -576,7 +591,7 @@
         function updateAccountDisplay() {
             const btnSave = document.getElementById('btn-save');
             const hintMsg = document.getElementById('hint-msg');
-            const activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
+            const linkedAcc = getLinkedAccountFromIndex();
 
             if (!isSelectedToday()) {
                 if (btnSave) {
@@ -591,7 +606,7 @@
                 return;
             }
 
-            if (!activeName) {
+            if (!linkedAcc) {
                 if (btnSave) {
                     btnSave.disabled = true;
                     btnSave.innerText = "Vui Lòng Đăng Nhập";
@@ -722,9 +737,9 @@
                             });
                         }
 
-                        if (isSelectedToday() && user) {
-                            const today = getTodayString();
-                            const doneToday = dailyRows.some(row => row.user_id === user.id);
+                        const linkedAcc = getLinkedAccountFromIndex();
+                        if (isSelectedToday() && linkedAcc) {
+                            const doneToday = dailyRows.some(row => row.user_id === linkedAcc.id || row.player_name === linkedAcc.name);
                             const btnSave = document.getElementById('btn-save');
                             if (doneToday && btnSave) {
                                 btnSave.disabled = true;
@@ -781,8 +796,8 @@
                 return;
             }
 
-            let userName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
-            if (!userName) {
+            const linkedAcc = getLinkedAccountFromIndex();
+            if (!linkedAcc) {
                 alert("Bạn cần đăng nhập tài khoản ở trang chính (index.html) trước khi thi!");
                 return;
             }
@@ -809,7 +824,7 @@
 
                 const { error } = await client.from(TABLE).insert({
                     user_id: user.id,
-                    player_name: userName,
+                    player_name: linkedAcc.name,
                     scramble: scramblePayload,
                     solve_time: solveTime,
                     raw_ms: rawMs,
@@ -825,7 +840,7 @@
             } else {
                 let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
                 localData.push({
-                    name: userName,
+                    name: linkedAcc.name,
                     date: today,
                     solves: solveStrings,
                     best: bestNumeric,
@@ -834,7 +849,7 @@
                 localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(localData));
             }
 
-            alert(`Đã lưu thành công kết quả Ao5 của ${userName}!`);
+            alert(`Đã lưu thành công kết quả Ao5 của ${linkedAcc.name}!`);
             let dateEl = document.getElementById('leaderboard-date');
             if (dateEl) dateEl.value = today;
             await renderLeaderboard();
@@ -967,11 +982,14 @@
             }
         }
 
-        // ĐẢM BẢO TẤT CẢ HÀM LUÔN CÓ TRÊN WINDOW
         window.saveToLeaderboard = saveToLeaderboard;
         window.resetSession = resetSession;
         window.togglePenalty = togglePenalty;
         window.onDateChange = onDateChange;
+
+        window.addEventListener('storage', () => {
+            checkUserSession();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
@@ -983,8 +1001,8 @@
                     return;
                 }
 
-                let activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
-                if (!activeName) {
+                const linkedAcc = getLinkedAccountFromIndex();
+                if (!linkedAcc) {
                     alert("Vui lòng đăng nhập ở trang chính (index.html) trước khi thi!");
                     return;
                 }
