@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik Timer HCC - Chế Độ Ao5</title>
+    <title>Rubik Timer HCC - Giải Đua Ao5 Hằng Ngày</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -39,7 +39,6 @@
             align-items: center;
         }
 
-        /* Navigation / Header */
         header {
             width: 100%;
             max-width: 900px;
@@ -58,10 +57,20 @@
             text-transform: uppercase;
         }
 
-        .nav-links {
+        .user-nav-group {
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+
+        .user-badge {
+            background: #0f172a;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         .nav-btn {
@@ -84,7 +93,6 @@
             color: #0f172a;
         }
 
-        /* Scramble Box */
         .scramble-box {
             background: var(--card-bg);
             padding: 8px 16px;
@@ -102,7 +110,6 @@
             flex-shrink: 0;
         }
 
-        /* Timer Display */
         .timer-container {
             display: flex;
             flex-direction: column;
@@ -110,7 +117,6 @@
             justify-content: center;
             margin: 2px 0;
             flex-shrink: 0;
-            position: relative;
         }
 
         .timer-display {
@@ -136,7 +142,6 @@
             flex-shrink: 0;
         }
 
-        /* Penalty Buttons (+2, DNF) for current solve */
         .penalty-bar {
             display: flex;
             gap: 8px;
@@ -160,7 +165,6 @@
             border-color: var(--danger-color);
         }
 
-        /* Status Bar (Solves inline & Controls) */
         .status-bar {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -214,22 +218,6 @@
             align-items: center;
         }
 
-        input[type="text"] {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: #0f172a;
-            color: white;
-            font-size: 0.85rem;
-            outline: none;
-            width: 130px;
-            user-select: text;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--accent-color);
-        }
-
         .btn {
             background: var(--accent-color);
             color: #0f172a;
@@ -245,6 +233,7 @@
 
         .btn:hover { background: var(--accent-hover); }
         .btn:active { transform: scale(0.96); }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
 
         .btn-reset {
             background: var(--danger-color);
@@ -252,7 +241,6 @@
         }
         .btn-reset:hover { background: #dc2626; }
 
-        /* Leaderboard Box */
         .leaderboard-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -277,10 +265,26 @@
             flex-shrink: 0;
         }
 
+        .leaderboard-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .leaderboard-header h2 {
             font-size: 1.1rem;
             margin: 0;
             color: var(--accent-color);
+        }
+
+        .date-picker {
+            background: #0f172a;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            outline: none;
         }
 
         .badge {
@@ -297,16 +301,9 @@
             border-radius: 6px;
         }
 
-        .table-wrapper::-webkit-scrollbar {
-            width: 6px;
-        }
-        .table-wrapper::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
+        .table-wrapper::-webkit-scrollbar { width: 6px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #0f172a; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
         table {
             width: 100%;
@@ -347,10 +344,10 @@
 
     <header>
         <h1>Rubik Timer HCC</h1>
-        <div class="nav-links">
-            <!-- Nút kết nối tài khoản & quay về index.html -->
+        <div class="user-nav-group">
+            <span class="user-badge" id="user-display">Chưa đăng nhập</span>
             <a href="index.html" class="nav-btn">
-                <span>&#128100;</span> Tài khoản / Trang chủ
+                <span>&#128100;</span> Trang chủ / Tài khoản
             </a>
         </div>
     </header>
@@ -364,9 +361,8 @@
             <button class="btn-penalty" id="btn-dnf" onclick="togglePenalty('DNF')">DNF</button>
         </div>
     </div>
-    <div class="hint" id="hint-msg">Nhấn <b>SPACE</b> để bắt đầu 15s quan sát (Inspection) | Nhấn giữ <b>SPACE</b> để chuẩn bị giải</div>
+    <div class="hint" id="hint-msg">Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải</div>
 
-    <!-- Thanh trạng thái lượt giải & Nhập kết quả -->
     <div class="status-bar">
         <div class="solves-inline">
             <div class="solve-pill" id="p1">1: --</div>
@@ -381,16 +377,17 @@
         </div>
 
         <div class="actions-group">
-            <input type="text" id="player-name" placeholder="Tên thí sinh...">
-            <button class="btn" onclick="saveToLeaderboard()">Lưu BXH</button>
+            <button class="btn" id="btn-save" onclick="saveToLeaderboard()">Lưu BXH Hôm Nay</button>
             <button class="btn btn-reset" onclick="resetSession()">Reset</button>
         </div>
     </div>
 
-    <!-- Bảng Xếp Hạng Cố Định Của Màn Hình -->
     <div class="leaderboard-card">
         <div class="leaderboard-header">
-            <h2>BẢNG XẾP HẠNG GIẢI ĐUA</h2>
+            <div class="leaderboard-title-group">
+                <h2>BẢNG XẾP HẠNG GIẢI ĐUA</h2>
+                <input type="date" id="leaderboard-date" class="date-picker" onchange="renderLeaderboard()">
+            </div>
             <span class="badge" id="total-participants">0 Thí sinh</span>
         </div>
         <div class="table-wrapper">
@@ -409,19 +406,36 @@
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <!-- Javascript sẽ đổ dữ liệu vào đây -->
+                    <!-- Javascript sẽ đổ dữ liệu theo ngày -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // Bảng xếp hạng khởi tạo rỗng (Đã xóa dữ liệu ví dụ)
-        let leaderboard = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard')) || [];
+        // Lấy ngày hiện tại format YYYY-MM-DD
+        function getTodayString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-        let currentSolves = []; // Lưu danh sách lượt giải: { rawTime: number, penalty: 'OK'|'+2'|'DNF', finalTime: number }
-        let timerState = 'idle'; // idle, inspection, holding, ready, running
-        let inspectionTime = 15;
+        // Đọc thông tin tài khoản đang đăng nhập từ index.html (Check các key thông dụng)
+        function getLoggedInUser() {
+            return localStorage.getItem('currentUser') || 
+                   localStorage.getItem('username') || 
+                   localStorage.getItem('rubik_user') || 
+                   (JSON.parse(localStorage.getItem('user') || '{}').username) || 
+                   null;
+        }
+
+        let currentUser = getLoggedInUser();
+        let leaderboard = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
+        
+        let currentSolves = [];
+        let timerState = 'idle';
         let inspectionInterval = null;
         let inspectionStart = 0;
         let holdTimeout = null;
@@ -430,6 +444,38 @@
 
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
+
+        // Khởi tạo giao diện tài khoản & Ngày xem BXH
+        document.getElementById('leaderboard-date').value = getTodayString();
+        
+        function updateAccountDisplay() {
+            const userDisplay = document.getElementById('user-display');
+            const btnSave = document.getElementById('btn-save');
+
+            if (currentUser) {
+                userDisplay.innerText = `👤 ${currentUser}`;
+                
+                // Kiểm tra xem hôm nay người dùng đã thi chưa
+                const today = getTodayString();
+                const alreadySubmitted = leaderboard.some(entry => entry.name === currentUser && entry.date === today);
+                
+                if (alreadySubmitted) {
+                    btnSave.disabled = true;
+                    btnSave.innerText = "Đã Thi Hôm Nay";
+                    document.getElementById('hint-msg').innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
+                } else {
+                    btnSave.disabled = false;
+                    btnSave.innerText = "Lưu BXH Hôm Nay";
+                }
+            } else {
+                userDisplay.innerText = "⚠️ Chưa Đăng Nhập";
+                userDisplay.style.borderColor = "var(--danger-color)";
+                userDisplay.style.color = "var(--danger-color)";
+                btnSave.disabled = true;
+                btnSave.innerText = "Vui Lòng Đăng Nhập";
+                document.getElementById('hint-msg').innerText = "⚠️ Bạn cần đăng nhập tài khoản ở Trang chủ (index.html) để tham gia thi Bảng xếp hạng!";
+            }
+        }
 
         function generateScramble() {
             let scramble = [];
@@ -446,7 +492,6 @@
             document.getElementById('scramble').innerText = scramble.join(" ");
         }
 
-        // Format thời gian hiển thị (+2 hay DNF)
         function formatSolve(solve) {
             if (!solve) return "--";
             if (solve.penalty === 'DNF') return "DNF";
@@ -463,13 +508,10 @@
         function calculateAo5(solves) {
             if (solves.length < 5) return null;
             let times = solves.map(s => getNumericValue(s));
-            
-            // Nếu từ 2 lần DNF trở lên -> Ao5 là DNF
             let dnfCount = times.filter(t => t === Infinity).length;
             if (dnfCount >= 2) return "DNF";
 
             let sorted = [...times].sort((a, b) => a - b);
-            // Loại bỏ 1 lần tốt nhất (index 0) và 1 lần tệ nhất (index 4)
             let middle3 = sorted.slice(1, 4);
             let sum = middle3.reduce((acc, val) => acc + val, 0);
             let avg = sum / 3;
@@ -507,8 +549,12 @@
         }
 
         function renderLeaderboard() {
-            // Sắp xếp theo Ao5 (DNF xếp cuối)
-            leaderboard.sort((a, b) => {
+            const selectedDate = document.getElementById('leaderboard-date').value;
+            
+            // Lọc danh sách theo ngày được chọn
+            let dailyEntries = leaderboard.filter(entry => entry.date === selectedDate);
+
+            dailyEntries.sort((a, b) => {
                 if (a.ao5 === "DNF") return 1;
                 if (b.ao5 === "DNF") return -1;
                 return a.ao5 - b.ao5;
@@ -517,13 +563,13 @@
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
 
-            if (leaderboard.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào. Hãy hoàn thành lượt giải để lưu vào bảng xếp hạng!</td></tr>';
+            if (dailyEntries.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
                 document.getElementById('total-participants').innerText = '0 Thí sinh';
                 return;
             }
 
-            leaderboard.forEach((entry, index) => {
+            dailyEntries.forEach((entry, index) => {
                 const tr = document.createElement('tr');
                 let rankClass = '';
                 if (index === 0) rankClass = 'rank-1';
@@ -547,15 +593,20 @@
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('total-participants').innerText = `${leaderboard.length} Thí sinh`;
+            document.getElementById('total-participants').innerText = `${dailyEntries.length} Thí sinh`;
         }
 
         function saveToLeaderboard() {
-            const nameInput = document.getElementById('player-name');
-            const name = nameInput.value.trim();
+            if (!currentUser) {
+                alert("Bạn cần đăng nhập tài khoản ở trang chính (index.html) trước khi thi!");
+                return;
+            }
 
-            if (!name) {
-                alert("Vui lòng nhập tên thí sinh!");
+            const today = getTodayString();
+            const alreadySubmitted = leaderboard.some(entry => entry.name === currentUser && entry.date === today);
+
+            if (alreadySubmitted) {
+                alert("Mỗi tài khoản chỉ được tham gia thi Ao5 một lần duy nhất trong ngày!");
                 return;
             }
 
@@ -566,21 +617,24 @@
 
             let ao5 = calculateAo5(currentSolves);
             let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
-
             let solveStrings = currentSolves.map(s => formatSolve(s));
 
             leaderboard.push({
-                name: name,
+                name: currentUser,
+                date: today,
                 solves: solveStrings,
                 best: bestNumeric,
                 ao5: ao5
             });
 
-            localStorage.setItem('rubik_hcc_leaderboard', JSON.stringify(leaderboard));
+            localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(leaderboard));
+            
+            // Cập nhật lại giao diện
+            document.getElementById('leaderboard-date').value = today;
             renderLeaderboard();
-            nameInput.value = '';
+            updateAccountDisplay();
             resetSession();
-            alert(`Đã lưu thành tích Ao5 của ${name} vào Bảng Xếp Hạng!`);
+            alert(`Đã lưu thành tích Ao5 (${typeof ao5 === 'number' ? ao5.toFixed(2) + 's' : ao5}) của tài khoản ${currentUser} cho ngày hôm nay!`);
         }
 
         function resetSession() {
@@ -591,12 +645,14 @@
             document.getElementById('timer').className = 'timer-display';
             document.getElementById('timer').innerText = "0.00";
             document.getElementById('penalty-bar').style.display = 'none';
-            document.getElementById('hint-msg').innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát (Inspection) | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+            
+            if (currentUser && !leaderboard.some(e => e.name === currentUser && e.date === getTodayString())) {
+                document.getElementById('hint-msg').innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+            }
             updateSessionUI();
             generateScramble();
         }
 
-        // Xử lý phạt +2 / DNF cho lượt giải vừa hoàn thành
         function togglePenalty(type) {
             if (currentSolves.length === 0) return;
             let lastIndex = currentSolves.length - 1;
@@ -615,13 +671,11 @@
             updateSessionUI();
         }
 
-        // Bắt đầu 15s Inspection
         function startInspection() {
             timerState = 'inspection';
-            inspectionTime = 15;
             const timerEl = document.getElementById('timer');
             timerEl.className = 'timer-display inspection';
-            timerEl.innerText = inspectionTime;
+            timerEl.innerText = 15;
 
             inspectionStart = Date.now();
             inspectionInterval = setInterval(() => {
@@ -661,7 +715,6 @@
             timerState = 'idle';
 
             let initialPenalty = 'OK';
-            // Kiểm tra xem lúc khởi chạy timer đang ở mức +2 hay DNF do quá thời gian inspection
             let inspectionElapsed = (Date.now() - inspectionStart) / 1000;
             if (inspectionStart > 0) {
                 if (inspectionElapsed > 17) {
@@ -680,7 +733,6 @@
                 currentSolves.push(newSolve);
                 timerEl.innerText = formatSolve(newSolve);
                 
-                // Hiển thị nút phạt +2 / DNF cho lượt vừa bấm
                 document.getElementById('penalty-bar').style.display = 'flex';
                 document.getElementById('btn-plus2').classList.toggle('active', initialPenalty === '+2');
                 document.getElementById('btn-dnf').classList.toggle('active', initialPenalty === 'DNF');
@@ -690,11 +742,22 @@
             }
         }
 
-        // Xử lý sự kiện bàn phím (SPACE)
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
                 if (e.target.tagName === 'INPUT') return;
                 e.preventDefault();
+
+                // Nếu chưa đăng nhập hoặc đã thi hôm nay thì khóa thao tác bắt đầu thi chính thức
+                if (!currentUser) {
+                    alert("Vui lòng đăng nhập ở trang chính trước khi thi!");
+                    return;
+                }
+
+                const today = getTodayString();
+                if (leaderboard.some(entry => entry.name === currentUser && entry.date === today)) {
+                    alert("Bạn đã hoàn thành lượt thi Ao5 của ngày hôm nay rồi!");
+                    return;
+                }
 
                 if (timerState === 'running') {
                     stopTimer();
@@ -726,7 +789,8 @@
             }
         });
 
-        // Khởi tạo ban đầu
+        // Khởi tạo
+        updateAccountDisplay();
         generateScramble();
         renderLeaderboard();
     </script>
