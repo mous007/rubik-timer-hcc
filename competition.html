@@ -1,581 +1,131 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik Timer HCC - Chế Độ Thi Đấu Ao5</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --accent-color: #38bdf8;
-            --accent-hover: #0284c7;
-            --gold: #fbbf24;
-            --silver: #94a3b8;
-            --bronze: #d97706;
-            --border-color: #334155;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --success-color: #22c55e;
-        }
-
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100vh;
-            margin: 0;
-            padding: 12px 20px;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        header {
-            width: 100%;
-            max-width: 900px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-shrink: 0;
-        }
-
-        h1 {
-            color: var(--accent-color);
-            margin: 0;
-            font-size: 1.5rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .user-nav-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .user-badge {
-            background: #0f172a;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .nav-btn {
-            background: #334155;
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background 0.2s;
-            border: 1px solid var(--border-color);
-        }
-
-        .nav-btn:hover {
-            background: var(--accent-color);
-            color: #0f172a;
-        }
-
-        .scramble-box {
-            background: var(--card-bg);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-            color: #f1f5f9;
-            margin-bottom: 6px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-            max-width: 900px;
-            width: 100%;
-            flex-shrink: 0;
-        }
-
-        .timer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 2px 0;
-            flex-shrink: 0;
-        }
-
-        .timer-display {
-            font-size: 4.8rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            color: #ffffff;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.1s ease;
-        }
-
-        .timer-display.inspection { color: var(--warning-color); }
-        .timer-display.holding { color: var(--warning-color); }
-        .timer-display.ready { color: var(--success-color); }
-        .timer-display.running { color: var(--danger-color); }
-
-        .hint {
-            color: #64748b;
-            font-size: 0.82rem;
-            margin-bottom: 8px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .penalty-bar {
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .btn-penalty {
-            background: #1e293b;
-            border: 1px solid var(--border-color);
-            color: #94a3b8;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-penalty.active {
-            background: var(--danger-color);
-            color: white;
-            border-color: var(--danger-color);
-        }
-
-        .status-bar {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-        }
-
-        .solves-inline {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .solve-pill {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #cbd5e1;
-            min-width: 65px;
-            text-align: center;
-        }
-
-        .solve-pill.best { border-color: var(--success-color); color: #4ade80; font-weight: bold; }
-        .solve-pill.worst { border-color: var(--danger-color); color: #f87171; font-weight: bold; }
-
-        .ao5-summary {
-            font-weight: bold;
-            font-size: 0.95rem;
-            color: var(--accent-color);
-            background: #0f172a;
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px dashed var(--accent-color);
-        }
-
-        .actions-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn {
-            background: var(--accent-color);
-            color: #0f172a;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            white-space: nowrap;
-        }
-
-        .btn:hover { background: var(--accent-hover); }
-        .btn:active { transform: scale(0.96); }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-
-        .btn-reset {
-            background: var(--danger-color);
-            color: white;
-        }
-        .btn-reset:hover { background: #dc2626; }
-
-        .leaderboard-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 900px;
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-
-        .leaderboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 8px;
-            flex-shrink: 0;
-        }
-
-        .leaderboard-title-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .leaderboard-header h2 {
-            font-size: 1.1rem;
-            margin: 0;
-            color: var(--accent-color);
-        }
-
-        .date-picker {
-            background: #0f172a;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            outline: none;
-        }
-
-        .badge {
-            background: #334155;
-            color: #cbd5e1;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.78rem;
-        }
-
-        .table-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            border-radius: 6px;
-        }
-
-        .table-wrapper::-webkit-scrollbar { width: 6px; }
-        .table-wrapper::-webkit-scrollbar-track { background: #0f172a; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 0.88rem;
-        }
-
-        th, td {
-            padding: 8px 6px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #0f172a;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            z-index: 10;
-        }
-
-        .rank-1 { color: var(--gold); font-weight: bold; }
-        .rank-2 { color: var(--silver); font-weight: bold; }
-        .rank-3 { color: var(--bronze); font-weight: bold; }
-        .empty-msg {
-            color: #64748b;
-            padding: 20px;
-            text-align: center;
-            font-style: italic;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10131c">
+<title>Đấu solo · Rubik Timer</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--line:#293653;--muted:#9baac5;--text:#f4f7ff;--green:#73e4b2;--blue:#7c9dff;--red:#ff8897;--yellow:#f6d47b}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}body{padding:10px;background:radial-gradient(ellipse at 50% -20%,#293a57,var(--bg) 60%);color:var(--text);font:500 14px/1.45 Inter,Segoe UI,sans-serif}.shell{width:min(1600px,100%);height:100%;margin:auto;display:flex;flex-direction:column;overflow:hidden}.top{height:38px;flex:0 0 38px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.brand{font-weight:800;font-size:1rem}.brand a{color:inherit;text-decoration:none}.btn{border:1px solid #53679a;border-radius:10px;background:#1a2440;color:var(--text);font:inherit;font-weight:700;padding:9px 11px;cursor:pointer;text-decoration:none;text-align:center}.btn.primary{background:linear-gradient(180deg,#7c9dff,#5d7ce8);border-color:#7c9dff;color:#081024}.btn:disabled{opacity:.45;cursor:not-allowed}.small{padding:6px 9px;font-size:.8rem}.field{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:.77rem;min-width:0}.field input,.field select{width:100%;min-width:0;padding:9px 10px;border:1px solid #354464;border-radius:9px;background:#0f172a;color:var(--text);font:inherit}.muted{color:var(--muted)}h1{font-size:1.2rem;margin:0 0 3px}h2{font-size:.92rem;margin:0 0 8px}.status{min-height:32px;margin:8px 0 0;color:var(--yellow);font-size:.8rem;overflow-wrap:anywhere}.status.error{color:var(--red)}.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(230px,285px) minmax(320px,1fr) minmax(300px,380px);gap:9px;overflow:hidden}.panel{min-width:0;min-height:0;padding:12px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(155deg,#192238ed,#121a2bed);overflow:hidden}.left,.middle,.right{display:flex;flex-direction:column;gap:9px}.room-panel,.scramble-panel,.results-panel,.player{padding:11px;border:1px solid #293653;border-radius:12px;background:#111a2b}.left .room-panel{flex:1;overflow:auto}.form-grid{display:grid;gap:8px}.button-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.room-code{font-size:1.45rem;font-weight:800;letter-spacing:.18em;color:var(--green)}.code-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.status{border-top:1px solid #293653;padding-top:7px}.match-title{margin-top:12px}.scramble-panel{flex:1;display:flex;flex-direction:column;min-height:0}.round-label{color:var(--muted);font-size:.84rem;margin-bottom:8px}.scramble-text{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;display:grid;place-items:center;padding:12px;font-size:clamp(1rem,1.8vw,1.45rem);line-height:1.8;word-break:break-word;text-align:center}.round-status{text-align:center;color:var(--yellow);font-weight:700;padding:8px 5px;min-height:38px}.rules{padding:10px;border:1px solid #293653;border-radius:12px;color:var(--muted);font-size:.77rem;line-height:1.5}.right{overflow:auto;overscroll-behavior:contain}.players{display:grid;grid-template-columns:1fr 1fr;gap:8px}.player{min-width:0;padding:9px}.player-head{display:flex;justify-content:space-between;align-items:center;gap:5px}.player-name{font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.online,.offline{font-size:.68rem;white-space:nowrap}.online{color:var(--green)}.offline{color:var(--muted)}.timer{font-size:clamp(2rem,4vw,3.8rem);font-weight:800;letter-spacing:-.06em;text-align:center;font-variant-numeric:tabular-nums;margin:7px 0 2px;cursor:pointer;user-select:none;touch-action:manipulation}.timer.ready{color:var(--green)}.timer.penalty{color:var(--yellow)}.timer.dnf{color:var(--red)}.timer:focus-visible{outline:2px solid var(--blue);outline-offset:3px}.result-copy{min-height:30px;text-align:center;color:var(--muted);font-size:.72rem;overflow-wrap:anywhere}.ready-button{width:100%;min-height:43px}.results-panel{min-height:0;flex:1;display:flex;flex-direction:column}.scoreline{font-weight:750;color:var(--yellow);font-size:.8rem;margin:0 0 7px}.table-scroll{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;border:1px solid #293653;border-radius:9px}table{width:100%;border-collapse:collapse;text-align:left;font-size:.72rem}th,td{padding:7px 5px;border-bottom:1px solid #2a3650}th{position:sticky;top:0;background:#192238;color:var(--muted);z-index:1}.result-winner{color:var(--green);font-weight:700}.hidden{display:none!important}@media(max-width:850px){.layout{grid-template-columns:minmax(200px,28%) minmax(260px,1fr) minmax(260px,32%);gap:6px}.panel{padding:8px}.timer{font-size:clamp(1.7rem,4vw,3rem)}}@media(max-width:650px){body{padding:6px}.top{height:30px;flex-basis:30px;margin-bottom:5px}.brand{font-size:.86rem}.layout{grid-template-columns:minmax(125px,31%) minmax(0,1fr) minmax(0,1fr);gap:5px}.panel{padding:6px;border-radius:10px}.left,.middle,.right{gap:5px}.room-panel,.scramble-panel,.results-panel,.player{padding:6px}.field{font-size:.68rem}.field input,.field select{padding:7px 5px;font-size:.7rem}.button-row{gap:4px}.button-row .btn{padding:7px 3px;font-size:.67rem}.room-code{font-size:.95rem}.code-row{align-items:flex-start;flex-direction:column}.code-row .btn{padding:5px}.left h1{font-size:.95rem}.status{font-size:.68rem}.players{grid-template-columns:1fr;gap:5px}.player-name{font-size:.7rem}.online,.offline{font-size:.58rem}.timer{font-size:clamp(1.5rem,7vw,2.4rem);margin:2px 0}.result-copy{min-height:23px;font-size:.63rem}.ready-button{min-height:36px;padding:5px 2px;font-size:.65rem}.scramble-text{font-size:.88rem;padding:5px}.round-label{font-size:.68rem}.round-status{font-size:.7rem;padding:4px 0;min-height:34px}.rules{font-size:.65rem;padding:6px}table{font-size:.62rem}th,td{padding:5px 2px}.results-panel h2{font-size:.75rem}.scoreline{font-size:.65rem}}
+</style>
 </head>
-<body>
+<body><main class="shell">
+<header class="top"><div class="brand"><a href="./">⏱ Rubik Timer · Đấu solo</a></div><a class="btn small" href="./">Trang chủ</a></header>
+<section class="layout">
+<aside class="panel left"><div class="room-panel"><h1>Tạo / vào phòng</h1><p class="muted" style="font-size:.75rem;margin:0 0 9px">Tạo phòng rồi gửi mã cho đối thủ.</p><div class="form-grid"><label class="field">Tên người chơi<input id="playerName" maxlength="24" placeholder="Người chơi" autocomplete="nickname"></label><label class="field">Loại cube<select id="event"><option value="333">3×3</option><option value="222">2×2</option><option value="444">4×4</option><option value="555">5×5</option><option value="666">6×6</option><option value="777">7×7</option><option value="333oh">3×3 OH</option><option value="pyram">Pyraminx</option><option value="skewb">Skewb</option><option value="minx">Megaminx</option></select></label><label class="field">Mã phòng / mật khẩu<input id="roomInput" maxlength="6" placeholder="6 ký tự" autocomplete="off"></label><div class="button-row"><button id="create" class="btn primary">Tạo phòng</button><button id="join" class="btn">Vào phòng</button></div></div><p id="status" class="status" role="status" aria-live="polite">Tạo phòng hoặc nhập mã của đối thủ.</p><div id="roomInfo" class="hidden"><h2 class="match-title">Mã phòng</h2><div class="code-row"><span id="roomCode" class="room-code">------</span><button id="copy" class="btn small">Sao chép</button></div></div></div><div class="rules"><strong>Luật bấm giờ</strong><br>Sau khi cả hai bấm sẵn sàng, mỗi người có 45 giây để bắt đầu inspection. Space lần đầu: inspection 15 giây; giữ rồi thả Space để chạy; Space lần nữa để dừng. Inspection quá 15 giây = +2, quá 17 giây = DNF.</div></aside>
+<section class="panel middle"><div class="scramble-panel"><div class="round-label">Vòng <span id="roundNumber">0</span> / 5 · <span id="eventName">3×3</span></div><h2>Scramble chung</h2><div id="scramble" class="scramble-text">Tạo phòng và mời đối thủ để bắt đầu.</div><div id="roundStatus" class="round-status">Chưa vào phòng</div></div></section>
+<aside class="panel right"><div class="players"><section class="player"><div class="player-head"><strong id="youName" class="player-name">Bạn</strong><span id="youState" class="offline">Chưa kết nối</span></div><div id="youTimer" class="timer" role="button" tabindex="0" aria-label="Bấm để bắt đầu inspection hoặc thao tác đồng hồ">0.00</div><div id="youResult" class="result-copy">Chờ vào phòng</div><button id="ready" class="btn primary ready-button" disabled>Sẵn sàng</button></section><section class="player"><div class="player-head"><strong id="opponentName" class="player-name">Đối thủ</strong><span id="opponentState" class="offline">Đang chờ</span></div><div id="opponentTimer" class="timer">--</div><div id="opponentResult" class="result-copy">Chưa hoàn thành</div><button class="btn ready-button" disabled>Đối thủ</button></section></div><section class="results-panel"><h2>Thành tích · 5 vòng</h2><p id="matchScore" class="scoreline">Bạn 0 · Đối thủ 0 · Hòa 0</p><div class="table-scroll"><table><thead><tr><th>Vòng</th><th>Bạn</th><th>Đối thủ</th><th>Kết quả</th></tr></thead><tbody id="resultRows"><tr><td colspan="4" class="muted">Chờ trận đấu</td></tr></tbody></table></div></section></aside>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.10/dist/umd/supabase.js"></script>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),SUPABASE_URL='https://bmglojinjtodeczsgjxh.supabase.co',SUPABASE_KEY='sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep',client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY),labels={333:'3×3',222:'2×2',444:'4×4',555:'5×5',666:'6×6',777:'7×7','333oh':'3×3 OH',pyram:'Pyraminx',skewb:'Skewb',minx:'Megaminx'},NAME_KEY='rubik-solo-name',MAX_ROUNDS=5,START_WINDOW_MS=45000;
+let channel=null,room='',role='',myName=localStorage.getItem(NAME_KEY)||'',opponent='',round=0,phase='idle',inspectAt=0,runStart=0,penalty='',ticker=null,keyHeld=false,roundActive=false,ownResult=null,opponentResult=null,localReady=false,remoteReady=false,windowEndsAt=0,results=Array.from({length:MAX_ROUNDS},()=>({host:null,guest:null})),advanceBusy=false,roundToken=0;
 
-    <header>
-        <h1>Rubik Timer HCC</h1>
-        <div class="user-nav-group">
-            <span class="user-badge" id="user-display">Chưa đăng nhập</span>
-            <a href="index.html" class="nav-btn">
-                <span>👤</span> Trang chủ / Tài khoản
-            </a>
-        </div>
-    </header>
-
-    <div class="scramble-box" id="scramble">Đang khởi tạo scramble...</div>
-
-    <div class="timer-container">
-        <div class="timer-display" id="timer">0.00</div>
-        <div class="penalty-bar" id="penalty-bar" style="display: none;">
-            <button class="btn-penalty" id="btn-plus2" onclick="togglePenalty('+2')">+2</button>
-            <button class="btn-penalty" id="btn-dnf" onclick="togglePenalty('DNF')">DNF</button>
-        </div>
-    </div>
-    <div class="hint" id="hint-msg">Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải</div>
-
-    <div class="status-bar">
-        <div class="solves-inline">
-            <div class="solve-pill" id="p1">1: --</div>
-            <div class="solve-pill" id="p2">2: --</div>
-            <div class="solve-pill" id="p3">3: --</div>
-            <div class="solve-pill" id="p4">4: --</div>
-            <div class="solve-pill" id="p5">5: --</div>
-        </div>
-
-        <div class="ao5-summary">
-            Ao5: <span id="ao5-val">--</span>
-        </div>
-
-        <div class="actions-group">
-            <button class="btn" id="btn-save" onclick="saveToLeaderboard()">Lưu BXH Hôm Nay</button>
-            <button class="btn btn-reset" id="btn-reset" onclick="resetSession()">Reset</button>
-        </div>
-    </div>
-
-    <div class="leaderboard-card">
-        <div class="leaderboard-header">
-            <div class="leaderboard-title-group">
-                <h2>BẢNG XẾP HẠNG GIẢI ĐUA</h2>
-                <input type="date" id="leaderboard-date" class="date-picker" onchange="onDateChange()">
-            </div>
-            <span class="badge" id="total-participants">0 Thí sinh</span>
-        </div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Hạng</th>
-                        <th>Thí sinh</th>
-                        <th>Lần 1</th>
-                        <th>Lần 2</th>
-                        <th>Lần 3</th>
-                        <th>Lần 4</th>
-                        <th>Lần 5</th>
-                        <th>Tốt nhất</th>
-                        <th>Ao5</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-body">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.10/dist/umd/supabase.js"></script>
-    <script>
-        const SUPABASE_URL = "https://bmglojinjtodeczsgjxh.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_1e-mCasKT2Vu1FtER3_Dgw_3uUqTuep";
-        const TABLE = "rubik_scores";
-        
-        let client = null;
-        try {
-            if (window.supabase) {
-                client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-                    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
-                });
-            }
-        } catch (e) {
-            console.warn("Chế độ ngoại tuyến hoặc không thể nạp Supabase SDK", e);
-        }
-
-        let user = null;
-        let currentSolves = [];
-        let timerState = 'idle';
-        let inspectionInterval = null;
-        let inspectionStart = 0;
-        let currentSolvePenalty = 'OK';
-        let holdTimeout = null;
-        let startTime = 0;
-        let timerInterval = null;
-
-        const moves = ["R", "L", "U", "D", "F", "B"];
-        const modifiers = ["", "'", "2"];
-
-        // ==========================================
-        // TÍNH NĂNG LIÊN KẾT TÀI KHOẢN TỪ INDEX.HTML
-        // ==========================================
-        function getLinkedAccountFromIndex() {
-            // 1. Kiểm tra tài khoản từ Supabase Auth đã xác thực
-            if (user) {
-                const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-                return { id: user.id, name: name, type: 'supabase' };
-            }
-
-            // 2. Kiểm tra các key lưu trữ thông dụng mà index.html thiết lập
-            const storageKeys = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account'];
-            for (let key of storageKeys) {
-                let val = localStorage.getItem(key) || sessionStorage.getItem(key);
-                if (val) {
-                    try {
-                        let parsed = JSON.parse(val);
-                        if (typeof parsed === 'object' && parsed !== null) {
-                            let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
-                            if (name) return { id: parsed.id || name, name: name, type: 'local_object' };
-                        } else if (typeof parsed === 'string' && parsed.trim() !== '') {
-                            return { id: parsed, name: parsed, type: 'local_string' };
-                        }
-                    } catch (e) {
-                        if (typeof val === 'string' && val.trim() !== '') {
-                            return { id: val, name: val, type: 'local_string' };
-                        }
-                    }
+// ==========================================
+// TÍNH NĂNG LIÊN KẾT TÀI KHOẢN TỪ INDEX.HTML
+// ==========================================
+function getLinkedAccountNameFromIndex() {
+    // 1. Kiểm tra session Supabase Auth Token
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.includes('-auth-token') || k.includes('supabase'))) {
+                const sessionData = JSON.parse(localStorage.getItem(k));
+                const userObj = sessionData?.user || sessionData?.currentSession?.user;
+                if (userObj) {
+                    const name = userObj.user_metadata?.display_name || userObj.email?.split('@')[0];
+                    if (name) return name;
                 }
             }
-
-            // 3. Tự động truy quét Session Supabase Token trong localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.includes('-auth-token') || key.includes('supabase'))) {
-                    try {
-                        const sessionData = JSON.parse(localStorage.getItem(key));
-                        const userObj = sessionData?.user || sessionData?.currentSession?.user;
-                        if (userObj) {
-                            const name = userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
-                            return { id: userObj.id, name: name, type: 'token' };
-                        }
-                    } catch (e) {}
-                }
-            }
-
-            return null;
         }
+    } catch(e) {}
 
-        function getAxis(move) {
-            if (move === "R" || move === "L") return 0;
-            if (move === "U" || move === "D") return 1;
-            if (move === "F" || move === "B") return 2;
-            return -1;
-        }
-
-        function generateScramble() {
+    // 2. Kiểm tra các Storage Key thông dụng được lưu từ index.html
+    const keys = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account', NAME_KEY];
+    for (let k of keys) {
+        let val = localStorage.getItem(k) || sessionStorage.getItem(k);
+        if (val) {
             try {
-                let scramble = [];
-                let lastMove = "";
-                let secondLastMove = "";
-
-                for (let i = 0; i < 20; i++) {
-                    let validMoves = moves.filter(m => {
-                        if (m === lastMove) return false;
-                        if (getAxis(m) === getAxis(lastMove) && getAxis(m) === getAxis(secondLastMove)) return false;
-                        return true;
-                    });
-
-                    let move = validMoves[Math.floor(Math.random() * validMoves.length)];
-                    let mod = modifiers[Math.floor(Math.random() * modifiers.length)];
-                    scramble.push(move + mod);
-
-                    secondLastMove = lastMove;
-                    lastMove = move;
+                let p = JSON.parse(val);
+                if (typeof p === 'object' && p !== null) {
+                    let name = p.display_name || p.name || p.username || p.email?.split('@')[0];
+                    if (name) return name;
+                } else if (typeof p === 'string' && p.trim()) {
+                    return p.trim();
                 }
-                const el = document.getElementById('scramble');
-                if (el) el.innerText = scramble.join(" ");
-            } catch (e) {
-                console.error("Lỗi khi tạo scramble:", e);
+            } catch(e) {
+                if (typeof val === 'string' && val.trim()) return val.trim();
             }
         }
+    }
+    return '';
+}
 
-        function getTodayString() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function isSelectedToday() {
-            const el = document.getElementById('leaderboard-date');
-            const selectedDate = el && el.value ? el.value : getTodayString();
-            return selectedDate === getTodayString();
-        }
-
-        function onDateChange() {
-            renderLeaderboard();
-            updateUIForSelectedDate();
-        }
-
-        function updateUIForSelectedDate() {
-            const btnSave = document.getElementById('btn-save');
-            const hintMsg = document.getElementById('hint-msg');
-            const dateEl = document.getElementById('leaderboard-date');
-            const selectedDate = dateEl && dateEl.value ? dateEl.value : getTodayString();
-
-            if (!isSelectedToday()) {
-                if (btnSave) {
-                    btnSave.disabled = true;
-                    btnSave.innerText = "Chỉ Được Xem (Chỉ Thi Ngày Hôm Nay)";
-                }
-                if (hintMsg) {
-                    hintMsg.innerHTML = `👁️ Bạn đang xem BXH ngày <b>${selectedDate}</b>. Đổi về ngày hôm nay (<b>${getTodayString()}</b>) để thi đấu!`;
-                }
-            } else {
-                updateAccountDisplay();
+async function syncLinkedAccount() {
+    let linkedName = '';
+    if (client) {
+        try {
+            const { data } = await client.auth.getSession();
+            if (data?.session?.user) {
+                const u = data.session.user;
+                linkedName = u.user_metadata?.display_name || u.email?.split('@')[0] || '';
             }
-        }
+        } catch(e) {}
+    }
+    if (!linkedName) {
+        linkedName = getLinkedAccountNameFromIndex();
+    }
+    if (linkedName) {
+        myName = linkedName;
+        localStorage.setItem(NAME_KEY, myName);
+        if ($('playerName')) $('playerName').value = myName;
+        if ($('youName')) $('youName').textContent = myName;
+    }
+}
 
-        async function checkUserSession() {
-            const userDisplay = document.getElementById('user-display');
+// Khởi chạy đồng bộ ngay lập tức và đăng ký theo dõi thay đổi storage
+syncLinkedAccount();
+window.addEventListener('storage', syncLinkedAccount);
 
-            if (client) {
-                try {
-                    const { data } = await client.auth.getSession();
-                    if (data?.session?.user) {
-                        user = data.session.user;
-                    }
-                } catch (e) {
-                    console.warn("Lỗi kiểm tra session Supabase:", e);
-                }
-            }
-
-            const linkedAcc = getLinkedAccountFromIndex();
-
-            if (linked
+$('playerName').value=myName;
+const setStatus=(text,error=false)=>{$('status').textContent=text;$('status').classList.toggle('error',error)};
+function timeText(ms){return(Math.max(0,ms)/1000).toFixed(2)}
+function clearTicker(){if(ticker){clearInterval(ticker);ticker=null}}
+function makeCode(){return(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):Math.random().toString(36).slice(2)).slice(0,6).toUpperCase()}
+async function makeScramble(event){const{randomScrambleForEvent}=await import('https://cdn.cubing.net/v0/js/cubing/scramble');return(await randomScrambleForEvent(event)).toString()}
+function displayResult(r){if(!r)return'—';return r.penalty==='DNF'?`${timeText(r.ms)} (DNF)`:r.penalty==='+2'?`${timeText(r.ms+2000)} (+2)`:timeText(r.ms)}
+function effective(r){if(!r)return null;if(r.penalty==='DNF')return Infinity;return r.ms+(r.penalty==='+2'?2000:0)}
+function cleanResult(raw){if(!raw||!Number.isFinite(Number(raw.ms))||Number(raw.ms)<0||!['','+2','DNF'].includes(raw.penalty))return null;return{ms:Number(raw.ms),penalty:raw.penalty}}
+function winnerOf(r){if(!r.host||!r.guest)return null;const h=effective(r.host),g=effective(r.guest);return h<g?'host':h>g?'guest':'tie'}
+function renderResults(){const body=$('resultRows');body.replaceChildren();let done=0,hostWins=0,guestWins=0,ties=0;results.forEach((r,i)=>{const tr=document.createElement('tr'),n=document.createElement('td'),mine=document.createElement('td'),other=document.createElement('td'),out=document.createElement('td'),w=winnerOf(r);n.textContent=String(i+1);mine.textContent=displayResult(r[role]);other.textContent=displayResult(r[role==='host'?'guest':'host']);out.textContent=w?(w==='tie'?'Hòa':w===role?'Bạn thắng':'Đối thủ thắng'):'—';if(w){done++;if(w==='host')hostWins++;else if(w==='guest')guestWins++;else ties++;if(w===role||w==='tie')out.className='result-winner'}tr.append(n,mine,other,out);body.append(tr)});const localWins=role==='host'?hostWins:guestWins,opponentWins=role==='host'?guestWins:hostWins;$('matchScore').textContent=`Bạn ${localWins} · Đối thủ ${opponentWins} · Hòa ${ties}`;if(done===MAX_ROUNDS){$('roundStatus').textContent='Đã hoàn thành đủ 5 vòng';setStatus(localWins===opponentWins?`Trận hòa ${localWins}–${opponentWins}.`:`${localWins>opponentWins?'Bạn thắng':'Đối thủ thắng'} chung cuộc ${localWins}–${opponentWins}!`)}}
+function updateReadyButton(){const canReady=Boolean(channel&&opponent&&roundActive&&phase==='prep');$('ready').disabled=!canReady||localReady;$('ready').textContent=localReady?(remoteReady?'Cả hai đã sẵn sàng':'Đã sẵn sàng · chờ đối thủ'):'Sẵn sàng';}
+function renderTimer(){const el=$('youTimer');el.className='timer';if(phase==='idle'||phase==='prep'){el.textContent='0.00';$('youResult').textContent=phase==='prep'?'Scramble sẵn sàng · bấm nút Sẵn sàng':'Chờ vòng bắt đầu'}else if(phase==='window'){const left=Math.max(0,Math.ceil((windowEndsAt-Date.now())/1000));el.textContent=String(left);el.classList.add('ready');$('youResult').textContent='Bắt đầu inspection bằng Space hoặc chạm đồng hồ'}else if(phase==='inspection'||phase==='armed'){const elapsed=performance.now()-inspectAt;if(elapsed>=17000){el.textContent='DNF';el.classList.add('dnf')}else if(elapsed>=15000){el.textContent='+2';el.classList.add('penalty')}else el.textContent=String(Math.ceil((15000-elapsed)/1000));if(phase==='armed')el.classList.add('ready');$('youResult').textContent=phase==='armed'?'Thả Space để bắt đầu solve':'Inspection · giữ Space rồi thả'}else if(phase==='running'){el.textContent=timeText(performance.now()-runStart);$('youResult').textContent='Đang giải…'}else if(phase==='done'){el.textContent=displayResult(ownResult);if(ownResult?.penalty==='DNF')el.classList.add('dnf');else if(ownResult?.penalty==='+2')el.classList.add('penalty');$('youResult').textContent=`Kết quả: ${displayResult(ownResult)}`}}
+function updateOpponentResult(r){opponentResult=r;const timer=$('opponentTimer');timer.className='timer';if(!r){timer.textContent='--';$('opponentResult').textContent='Chưa hoàn thành';return}timer.textContent=displayResult(r);if(r.penalty==='DNF')timer.classList.add('dnf');else if(r.penalty==='+2')timer.classList.add('penalty');$('opponentResult').textContent=`Kết quả: ${displayResult(r)}`}
+function updateControls(){updateReadyButton();renderTimer()}
+function drawPresence(){if(!channel)return;const people=Object.values(channel.presenceState()).flat().filter(p=>p.role!==role);if(people.length){opponent=people[0].name||'Đối thủ';$('opponentName').textContent=opponent;$('opponentState').textContent='Đã kết nối';$('opponentState').className='online';updateReadyButton()}else{$('opponentName').textContent='Đối thủ';$('opponentState').textContent='Đang chờ';$('opponentState').className='offline';opponent='';updateReadyButton()}}
+async function send(type,payload={}){if(channel)await channel.send({type:'broadcast',event:'match',payload:{type,from:role,...payload}})}
+function beginPrep(nextRound,nextScramble){clearTicker();roundToken++;round=nextRound;roundActive=true;phase='prep';windowEndsAt=0;ownResult=null;opponentResult=null;localReady=false;remoteReady=false;advanceBusy=false;penalty='';inspectAt=0;runStart=0;$('youState').dataset.ready='false';$('opponentState').dataset.ready='false';$('roundNumber').textContent=String(round);$('eventName').textContent=labels[$('event').value]||$('event').value;$('scramble').textContent=nextScramble;$('roundStatus').textContent='Scramble đã sẵn sàng · khi cả hai xong hãy bấm Sẵn sàng';$('youState').textContent='Chưa sẵn sàng';$('youState').className='online';$('opponentState').textContent='Chưa sẵn sàng';$('opponentState').className='online';updateOpponentResult(null);renderResults();updateControls();setStatus(`Vòng ${round}: kiểm tra scramble, sau đó cả hai bấm nút Sẵn sàng.`)}
+function startWindow(endsAt){if(phase!=='prep')return;clearTicker();windowEndsAt=endsAt;phase='window';roundActive=true;$('roundStatus').textContent='Sẵn sàng · bắt đầu inspection trong 45 giây';setStatus('Bắt đầu inspection trong 45 giây bằng Space hoặc chạm đồng hồ.');const token=roundToken;ticker=setInterval(()=>{if(token!==roundToken){clearTicker();return}if(phase==='window'){const remaining=windowEndsAt-Date.now();if(remaining<=0){clearTicker();phase='done';roundActive=false;ownResult={ms:0,penalty:'DNF'};results[round-1][role]=ownResult;$('youState').textContent='Hết giờ · DNF';$('youState').className='offline';$('roundStatus').textContent='Không bắt đầu inspection đúng hạn · DNF';renderTimer();renderResults();void send('result',{round,...ownResult});void maybeAdvanceRound();return}renderTimer()}else if(phase==='inspection'||phase==='armed')renderTimer()},50);updateControls()}
+async function markReady(){if(phase!=='prep'||localReady||!channel||!opponent)return;localReady=true;$('youState').dataset.ready='true';$('youState').textContent='Đã sẵn sàng';updateReadyButton();$('roundStatus').textContent=remoteReady?'Cả hai đã sẵn sàng · bắt đầu':'Đang chờ đối thủ bấm Sẵn sàng…';await send('ready',{round});if(role==='host'&&remoteReady)beginStartWindow();setStatus(remoteReady?'Cả hai đã sẵn sàng!':'Bạn đã sẵn sàng. Đang chờ đối thủ…')}
+function beginStartWindow(){if(role!=='host'||phase!=='prep'||!localReady||!remoteReady)return;const endsAt=Date.now()+START_WINDOW_MS;startWindow(endsAt);void send('start-window',{round,endsAt})}
+function startInspection(){if(!roundActive||phase!=='window'||Date.now()>windowEndsAt)return;clearTicker();phase='inspection';penalty='';inspectAt=performance.now();$('roundStatus').textContent='Inspection: 15 giây';setStatus('Inspection bắt đầu. Giữ rồi thả Space để chạy.');ticker=setInterval(()=>{if(phase==='inspection'||phase==='armed')renderTimer()},25);renderTimer()}
+function armTimer(){if(phase!=='inspection')return;phase='armed';renderTimer();setStatus('Thả Space để chạy timer')}
+function startSolve(){if(phase!=='inspection'&&phase!=='armed')return;const elapsed=performance.now()-inspectAt;penalty=elapsed>=17000?'DNF':elapsed>=15000?'+2':'';phase='running';runStart=performance.now();$('roundStatus').textContent='Đang solve';clearTicker();ticker=setInterval(()=>{if(phase==='running')renderTimer()},10);renderTimer();setStatus('Đang giải…')}
+async function finishSolve(){if(phase!=='running')return;const result={ms:Math.round(performance.now()-runStart),penalty};clearTicker();phase='done';roundActive=false;ownResult=result;results[round-1][role]=result;$('youState').textContent='Đã hoàn thành';$('youState').className='online';$('roundStatus').textContent='Đã xong · chờ đối thủ';renderTimer();renderResults();updateReadyButton();await send('result',{round,...result});setStatus(opponentResult?'Cả hai đã hoàn thành vòng.':'Đã ghi kết quả; chờ đối thủ hoàn thành.');void maybeAdvanceRound()}
+function timerPress(){if(phase==='window'){startInspection();return}if(phase==='inspection'){startSolve();return}if(phase==='running')void finishSolve()}
+async function maybeAdvanceRound(){if(role!=='host'||advanceBusy||!results[round-1]?.host||!results[round-1]?.guest)return;advanceBusy=true;roundActive=false;phase='done';clearTicker();renderResults();if(round>=MAX_ROUNDS){$('roundStatus').textContent='Đã xong 5 vòng';return}const completedRound=round;setStatus('Cả hai đã xong · đang tạo scramble vòng tiếp theo…');try{const nextScramble=await makeScramble($('event').value);if(round!==completedRound)return;await send('next-round',{round:round+1,scramble:nextScramble,event:$('event').value});beginPrep(round+1,nextScramble)}catch(e){console.error(e);advanceBusy=false;setStatus('Không tạo được scramble mới. Kiểm tra kết nối rồi thử lại.',true)}}
+async function onHello(payload){opponent=payload.name||'Đối thủ';$('opponentName').textContent=opponent;drawPresence();if(round===0){try{const sc=await makeScramble($('event').value);await send('round-start',{round:1,scramble:sc,event:$('event').value,name:myName});beginPrep(1,sc)}catch(e){console.error(e);setStatus('Không tạo được scramble. Kiểm tra kết nối.',true)}}else{await send('sync',{round,scramble:$('scramble').textContent,event:$('event').value,phase,windowEndsAt,results,localReady,remoteReady})}}
+function lockSetup(){for(const id of ['create','join','roomInput','playerName','event'])$(id).disabled=true}
+async function enterRoom(code,asHost){if(channel)await client.removeChannel(channel);myName=$('playerName').value.trim()||'Người chơi';$('playerName').value=myName;localStorage.setItem(NAME_KEY,myName);room=code.toUpperCase();role=asHost?'host':'guest';opponent='';round=0;results=Array.from({length:MAX_ROUNDS},()=>({host:null,guest:null}));roundActive=false;phase='idle';ownResult=null;opponentResult=null;localReady=false;remoteReady=false;advanceBusy=false;clearTicker();$('event').disabled=true;lockSetup();$('roomInfo').classList.remove('hidden');$('roomCode').textContent=room;$('youName').textContent=myName;$('youState').textContent='Đang kết nối';$('youState').className='offline';$('opponentState').textContent='Đang chờ';$('opponentState').className='offline';$('scramble').textContent='Đang chờ đối thủ…';$('roundNumber').textContent='0';$('roundStatus').textContent='Đang kết nối phòng';renderResults();updateControls();setStatus('Đang kết nối phòng…');channel=client.channel('solo-match-'+room,{config:{presence:{key:role+'-'+Math.random().toString(36).slice(2)},broadcast:{self:false}}});
+channel.on('presence',{event:'sync'},drawPresence).on('broadcast',{event:'match'},({payload})=>{if(!payload||payload.from===role)return;if(payload.type==='hello'&&role==='host'){void onHello(payload);return}if(payload.type==='round-start'&&role==='guest'){opponent=payload.name||opponent;$('opponentName').textContent=opponent;if(payload.event){$('event').value=payload.event;$('eventName').textContent=labels[payload.event]||payload.event}beginPrep(payload.round,payload.scramble);return}if(payload.type==='ready'&&payload.round===round&&phase==='prep'){remoteReady=true;$('opponentState').dataset.ready='true';$('opponentState').textContent='Đối thủ đã sẵn sàng';$('roundStatus').textContent=localReady?'Cả hai đã sẵn sàng':'Đối thủ đã sẵn sàng · bạn hãy bấm nút';updateReadyButton();if(role==='host'&&localReady)beginStartWindow();return}if(payload.type==='start-window'&&payload.round===round&&role==='guest'){remoteReady=true;startWindow(payload.endsAt);return}if(payload.type==='result'&&payload.round===round&&['host','guest'].includes(payload.from)){const r=cleanResult(payload);if(!r)return;results[round-1][payload.from]=r;if(payload.from!==role){opponentResult=r;updateOpponentResult(r);$('opponentState').textContent='Đã hoàn thành'}renderResults();if(results[round-1].host&&results[round-1].guest)void maybeAdvanceRound();return}if(payload.type==='next-round'&&role==='guest'&&Number.isInteger(payload.round)&&payload.round===round+1&&payload.round<=MAX_ROUNDS&&typeof payload.scramble==='string'){if(payload.event){$('event').value=payload.event;$('eventName').textContent=labels[payload.event]||payload.event}beginPrep(payload.round,payload.scramble);return}if(payload.type==='sync'&&role==='guest'){opponent=payload.name||opponent;if(payload.results)results=payload.results.map(r=>({host:cleanResult(r.host),guest:cleanResult(r.guest)}));if(payload.round&&payload.scramble){round=payload.round;$('roundNumber').textContent=String(round);$('scramble').textContent=payload.scramble;if(payload.phase==='prep')beginPrep(payload.round,payload.scramble);else if(payload.phase==='window'&&payload.windowEndsAt> Date.now())startWindow(payload.windowEndsAt);else if(payload.phase==='done'){phase='done';roundActive=false;renderResults();renderTimer()}}}});
+channel.subscribe(async state=>{if(state!=='SUBSCRIBED'){if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')setStatus('Không kết nối được phòng realtime. Kiểm tra Supabase Realtime.',true);return}setStatus(asHost?'Phòng đã tạo. Gửi mã cho đối thủ.':'Đang vào phòng…');await channel.track({role,name:myName});if(!asHost){await send('hello',{name:myName});setStatus('Đã gửi yêu cầu vào phòng…')}else drawPresence()})}
+$('create').onclick=()=>void enterRoom(makeCode(),true);
+$('join').onclick=()=>{const code=$('roomInput').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){setStatus('Mã phòng cần gồm đúng 6 chữ hoặc số.',true);return}void enterRoom(code,false)};
+$('ready').onclick=()=>void markReady();
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(room);$('copy').textContent='Đã sao chép';setTimeout(()=>$('copy').textContent='Sao chép',1200)}catch{setStatus(`Mã phòng: ${room}`)}};
+$('youTimer').addEventListener('click',timerPress);$('youTimer').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();timerPress()}});
+document.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||e.target instanceof HTMLElement&&['INPUT','SELECT','BUTTON','A'].includes(e.target.tagName))return;e.preventDefault();if(!keyHeld){keyHeld=true;if(phase==='window')startInspection();else if(phase==='inspection')armTimer();else if(phase==='running')void finishSolve()}});
+document.addEventListener('keyup',e=>{if(e.code!=='Space')return;e.preventDefault();keyHeld=false;if(phase==='armed')startSolve()});window.addEventListener('blur',()=>{keyHeld=false;if(phase==='armed')startSolve()});window.addEventListener('beforeunload',()=>{clearTicker();if(channel)void client.removeChannel(channel)});
+})();
+</script></body></html>
