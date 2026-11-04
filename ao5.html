@@ -378,7 +378,7 @@
 
         <div class="actions-group">
             <button class="btn" id="btn-save" onclick="saveToLeaderboard()">Lưu BXH Hôm Nay</button>
-            <button class="btn btn-reset" onclick="resetSession()">Reset</button>
+            <button class="btn btn-reset" id="btn-reset" onclick="resetSession()">Reset</button>
         </div>
     </div>
 
@@ -425,5 +425,622 @@
                 });
             }
         } catch (e) {
-            console.warn("Chế độ ngoại tuyến hoặc không thể nạp Supabase SDK");
+            console.warn("Chế độ ngoại tuyến hoặc không thể nạp Supabase SDK", e);
         }
+
+        let user = null;
+        let currentSolves = [];
+        let timerState = 'idle';
+        let inspectionInterval = null;
+        let inspectionStart = 0;
+        let currentSolvePenalty = 'OK';
+        let holdTimeout = null;
+        let startTime = 0;
+        let timerInterval = null;
+
+        const moves = ["R", "L", "U", "D", "F", "B"];
+        const modifiers = ["", "'", "2"];
+
+        function getAxis(move) {
+            if (move === "R" || move === "L") return 0;
+            if (move === "U" || move === "D") return 1;
+            if (move === "F" || move === "B") return 2;
+            return -1;
+        }
+
+        function generateScramble() {
+            try {
+                let scramble = [];
+                let lastMove = "";
+                let secondLastMove = "";
+
+                for (let i = 0; i < 20; i++) {
+                    let validMoves = moves.filter(m => {
+                        if (m === lastMove) return false;
+                        if (getAxis(m) === getAxis(lastMove) && getAxis(m) === getAxis(secondLastMove)) return false;
+                        return true;
+                    });
+
+                    let move = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    let mod = modifiers[Math.floor(Math.random() * modifiers.length)];
+                    scramble.push(move + mod);
+
+                    secondLastMove = lastMove;
+                    lastMove = move;
+                }
+                const el = document.getElementById('scramble');
+                if (el) el.innerText = scramble.join(" ");
+            } catch (e) {
+                console.error("Lỗi khi tạo scramble:", e);
+            }
+        }
+
+        function getTodayString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getLocalFallbackUser() {
+            let u = localStorage.getItem('currentUser') || localStorage.getItem('username');
+            if (u) return u;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('-auth-token')) {
+                    try {
+                        const sessionData = JSON.parse(localStorage.getItem(key));
+                        const userObj = sessionData?.user || sessionData?.currentSession?.user;
+                        if (userObj) {
+                            return userObj.user_metadata?.display_name || userObj.email?.split('@')[0] || "Player";
+                        }
+                    } catch (e) {}
+                }
+            }
+            return null;
+        }
+
+        function isSelectedToday() {
+            const el = document.getElementById('leaderboard-date');
+            const selectedDate = el && el.value ? el.value : getTodayString();
+            return selectedDate === getTodayString();
+        }
+
+        function onDateChange() {
+            renderLeaderboard();
+            updateUIForSelectedDate();
+        }
+
+        function updateUIForSelectedDate() {
+            const btnSave = document.getElementById('btn-save');
+            const hintMsg = document.getElementById('hint-msg');
+            const dateEl = document.getElementById('leaderboard-date');
+            const selectedDate = dateEl && dateEl.value ? dateEl.value : getTodayString();
+
+            if (!isSelectedToday()) {
+                if (btnSave) {
+                    btnSave.disabled = true;
+                    btnSave.innerText = "Chỉ Được Xem (Chỉ Thi Ngày Hôm Nay)";
+                }
+                if (hintMsg) {
+                    hintMsg.innerHTML = `👁️ Bạn đang xem BXH ngày <b>${selectedDate}</b>. Đổi về ngày hôm nay (<b>${getTodayString()}</b>) để thi đấu!`;
+                }
+            } else {
+                updateAccountDisplay();
+            }
+        }
+
+        async function checkUserSession() {
+            const userDisplay = document.getElementById('user-display');
+
+            if (client) {
+                try {
+                    const { data } = await client.auth.getSession();
+                    if (data?.session?.user) {
+                        user = data.session.user;
+                        const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
+                        if (userDisplay) {
+                            userDisplay.innerText = `👤 ${name}`;
+                            userDisplay.style.borderColor = "var(--accent-color)";
+                            userDisplay.style.color = "var(--accent-color)";
+                        }
+                        updateUIForSelectedDate();
+                        await renderLeaderboard();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Lỗi kiểm tra session Supabase:", e);
+                }
+            }
+
+            let fallbackName = getLocalFallbackUser();
+            if (fallbackName) {
+                if (userDisplay) {
+                    userDisplay.innerText = `👤 ${fallbackName}`;
+                    userDisplay.style.borderColor = "var(--accent-color)";
+                    userDisplay.style.color = "var(--accent-color)";
+                }
+            } else {
+                if (userDisplay) {
+                    userDisplay.innerText = "⚠️ Chưa Đăng Nhập";
+                    userDisplay.style.borderColor = "var(--danger-color)";
+                    userDisplay.style.color = "var(--danger-color)";
+                }
+            }
+
+            updateUIForSelectedDate();
+            await renderLeaderboard();
+        }
+
+        function updateAccountDisplay() {
+            const btnSave = document.getElementById('btn-save');
+            const hintMsg = document.getElementById('hint-msg');
+            const activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
+
+            if (!isSelectedToday()) {
+                if (btnSave) {
+                    btnSave.disabled = true;
+                    btnSave.innerText = "Chỉ Được Xem (Chỉ Thi Ngày Hôm Nay)";
+                }
+                if (hintMsg) {
+                    const dateEl = document.getElementById('leaderboard-date');
+                    const dVal = dateEl ? dateEl.value : getTodayString();
+                    hintMsg.innerHTML = `👁️ Bạn đang xem BXH ngày <b>${dVal}</b>. Hãy chuyển về ngày hôm nay để thi!`;
+                }
+                return;
+            }
+
+            if (!activeName) {
+                if (btnSave) {
+                    btnSave.disabled = true;
+                    btnSave.innerText = "Vui Lòng Đăng Nhập";
+                }
+                if (hintMsg) {
+                    hintMsg.innerHTML = "⚠️ Bạn cần đăng nhập tài khoản ở <a href='./index.html' style='color:var(--accent-color)'>Trang chủ</a> để tham gia thi!";
+                }
+            } else {
+                if (btnSave) {
+                    btnSave.disabled = false;
+                    btnSave.innerText = "Lưu BXH Hôm Nay";
+                }
+                if (hintMsg) {
+                    hintMsg.innerHTML = "Nhấn <b>SPACE</b> để bắt đầu 15s quan sát | Nhấn giữ <b>SPACE</b> để chuẩn bị giải";
+                }
+            }
+        }
+
+        function formatSolve(solve) {
+            if (!solve) return "--";
+            if (solve.penalty === 'DNF') return "DNF";
+            if (solve.penalty === '+2') return (solve.rawTime + 2).toFixed(2) + "+";
+            return solve.rawTime.toFixed(2);
+        }
+
+        function getNumericValue(solve) {
+            if (!solve || solve.penalty === 'DNF') return Infinity;
+            if (solve.penalty === '+2') return solve.rawTime + 2;
+            return solve.rawTime;
+        }
+
+        function calculateAo5(solves) {
+            if (solves.length < 5) return null;
+            let times = solves.map(s => getNumericValue(s));
+            let dnfCount = times.filter(t => t === Infinity).length;
+            if (dnfCount >= 2) return "DNF";
+
+            let sorted = [...times].sort((a, b) => a - b);
+            let middle3 = sorted.slice(1, 4);
+            let sum = middle3.reduce((acc, val) => acc + val, 0);
+            let avg = sum / 3;
+            return Math.round(avg * 100) / 100;
+        }
+
+        function updateSessionUI() {
+            for (let i = 1; i <= 5; i++) {
+                let pill = document.getElementById(`p${i}`);
+                if (pill) {
+                    pill.classList.remove('best', 'worst');
+                    let solve = currentSolves[i - 1];
+                    pill.innerText = solve ? `${i}: ${formatSolve(solve)}` : `${i}: --`;
+                }
+            }
+
+            if (currentSolves.length === 5) {
+                let numericTimes = currentSolves.map((s, idx) => ({ val: getNumericValue(s), idx }));
+                numericTimes.sort((a, b) => a.val - b.val);
+                
+                let minIdx = numericTimes[0].idx;
+                let maxIdx = numericTimes[4].idx;
+
+                let minPill = document.getElementById(`p${minIdx + 1}`);
+                let maxPill = document.getElementById(`p${maxIdx + 1}`);
+                if (minPill) minPill.classList.add('best');
+                if (maxPill) maxPill.classList.add('worst');
+
+                let ao5 = calculateAo5(currentSolves);
+                let ao5El = document.getElementById('ao5-val');
+                if (ao5El) ao5El.innerText = typeof ao5 === 'number' ? ao5.toFixed(2) + "s" : ao5;
+            } else {
+                let ao5El = document.getElementById('ao5-val');
+                if (ao5El) ao5El.innerText = "--";
+            }
+        }
+
+        async function renderLeaderboard() {
+            const dateEl = document.getElementById('leaderboard-date');
+            const selectedDate = dateEl && dateEl.value ? dateEl.value : getTodayString();
+            const tbody = document.getElementById('leaderboard-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Đang tải dữ liệu Bảng Xếp Hạng...</td></tr>';
+
+            let dailyEntries = [];
+
+            if (client) {
+                try {
+                    const { data, error } = await client.from(TABLE).select('*').eq('cube_type', '333_ao5').order('created_at', { ascending: true });
+                    if (!error && data) {
+                        const dailyRows = data.filter(row => row && row.created_at && row.created_at.startsWith(selectedDate));
+                        const userMap = new Map();
+                        for (const row of dailyRows) {
+                            if (!userMap.has(row.user_id)) {
+                                userMap.set(row.user_id, row);
+                            }
+                        }
+                        dailyEntries = Array.from(userMap.values());
+                        dailyEntries.sort((a, b) => (a.raw_ms || 999999) - (b.raw_ms || 999999));
+
+                        tbody.innerHTML = '';
+                        if (dailyEntries.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
+                            let countEl = document.getElementById('total-participants');
+                            if (countEl) countEl.innerText = '0 Thí sinh';
+                        } else {
+                            let countEl = document.getElementById('total-participants');
+                            if (countEl) countEl.innerText = `${dailyEntries.length} Thí sinh`;
+
+                            dailyEntries.forEach((entry, index) => {
+                                const tr = document.createElement('tr');
+                                let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                                let details = { solves: ['--', '--', '--', '--', '--'], best: '--' };
+                                try { details = JSON.parse(entry.scramble); } catch (e) {}
+                                let ao5Str = (entry.penalty === 'DNF' || !entry.solve_time || entry.solve_time >= 9999) ? "DNF" : entry.solve_time.toFixed(2) + "s";
+
+                                tr.innerHTML = `
+                                    <td class="${rankClass}">${index + 1}</td>
+                                    <td style="font-weight: 600;">${entry.player_name || 'Cuber'}</td>
+                                    <td>${details.solves ? details.solves[0] || '--' : '--'}</td>
+                                    <td>${details.solves ? details.solves[1] || '--' : '--'}</td>
+                                    <td>${details.solves ? details.solves[2] || '--' : '--'}</td>
+                                    <td>${details.solves ? details.solves[3] || '--' : '--'}</td>
+                                    <td>${details.solves ? details.solves[4] || '--' : '--'}</td>
+                                    <td style="color: #22c55e;">${details.best || '--'}</td>
+                                    <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
+                                `;
+                                tbody.appendChild(tr);
+                            });
+                        }
+
+                        if (isSelectedToday() && user) {
+                            const today = getTodayString();
+                            const doneToday = dailyRows.some(row => row.user_id === user.id);
+                            const btnSave = document.getElementById('btn-save');
+                            if (doneToday && btnSave) {
+                                btnSave.disabled = true;
+                                btnSave.innerText = "Đã Thi Hôm Nay";
+                                let hintEl = document.getElementById('hint-msg');
+                                if (hintEl) hintEl.innerText = "⚠️ Bạn đã hoàn thành lượt thi Ao5 hôm nay! Hãy quay lại vào ngày mai.";
+                            }
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Lỗi tải BXH từ Supabase:", e);
+                }
+            }
+
+            let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
+            let filteredLocal = localData.filter(e => e && e.date === selectedDate);
+            filteredLocal.sort((a, b) => (a.ao5 === "DNF" ? 1 : b.ao5 === "DNF" ? -1 : a.ao5 - b.ao5));
+
+            tbody.innerHTML = '';
+            if (filteredLocal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Chưa có kết quả nào trong ngày ${selectedDate}.</td></tr>`;
+                let countEl = document.getElementById('total-participants');
+                if (countEl) countEl.innerText = '0 Thí sinh';
+            } else {
+                let countEl = document.getElementById('total-participants');
+                if (countEl) countEl.innerText = `${filteredLocal.length} Thí sinh`;
+
+                filteredLocal.forEach((entry, index) => {
+                    const tr = document.createElement('tr');
+                    let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                    let ao5Str = typeof entry.ao5 === 'number' ? entry.ao5.toFixed(2) + "s" : "DNF";
+                    let bestStr = entry.best === Infinity ? "DNF" : entry.best.toFixed(2);
+
+                    tr.innerHTML = `
+                        <td class="${rankClass}">${index + 1}</td>
+                        <td style="font-weight: 600;">${entry.name}</td>
+                        <td>${entry.solves[0]}</td>
+                        <td>${entry.solves[1]}</td>
+                        <td>${entry.solves[2]}</td>
+                        <td>${entry.solves[3]}</td>
+                        <td>${entry.solves[4]}</td>
+                        <td style="color: #22c55e;">${bestStr}</td>
+                        <td style="font-weight: bold; color: var(--accent-color);">${ao5Str}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        async function saveToLeaderboard() {
+            if (!isSelectedToday()) {
+                alert("Bạn chỉ được tham gia thi đấu trong ngày HÔM NAY! Các ngày khác chỉ được xem.");
+                return;
+            }
+
+            let userName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
+            if (!userName) {
+                alert("Bạn cần đăng nhập tài khoản ở trang chính (index.html) trước khi thi!");
+                return;
+            }
+
+            if (currentSolves.length < 5) {
+                alert("Bạn cần hoàn thành đủ 5 lượt giải Ao5 để lưu vào Bảng Xếp Hạng!");
+                return;
+            }
+
+            const today = getTodayString();
+            let ao5 = calculateAo5(currentSolves);
+            let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
+            let solveStrings = currentSolves.map(s => formatSolve(s));
+
+            if (client && user) {
+                const rawMs = typeof ao5 === 'number' ? Math.round(ao5 * 1000) : 99999999;
+                const solveTime = typeof ao5 === 'number' ? ao5 : 99999;
+                const penaltyVal = ao5 === 'DNF' ? 'DNF' : 'OK';
+
+                const scramblePayload = JSON.stringify({
+                    solves: solveStrings,
+                    best: bestNumeric === Infinity ? "DNF" : bestNumeric.toFixed(2)
+                });
+
+                const { error } = await client.from(TABLE).insert({
+                    user_id: user.id,
+                    player_name: userName,
+                    scramble: scramblePayload,
+                    solve_time: solveTime,
+                    raw_ms: rawMs,
+                    penalty: penaltyVal,
+                    cube_type: '333_ao5',
+                    created_at: new Date().toISOString()
+                });
+
+                if (error) {
+                    alert("Lỗi lưu trực tuyến: " + error.message);
+                    return;
+                }
+            } else {
+                let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
+                localData.push({
+                    name: userName,
+                    date: today,
+                    solves: solveStrings,
+                    best: bestNumeric,
+                    ao5: ao5
+                });
+                localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(localData));
+            }
+
+            alert(`Đã lưu thành công kết quả Ao5 của ${userName}!`);
+            let dateEl = document.getElementById('leaderboard-date');
+            if (dateEl) dateEl.value = today;
+            await renderLeaderboard();
+            resetSession();
+        }
+
+        function resetSession() {
+            currentSolves = [];
+            clearInterval(inspectionInterval);
+            clearInterval(timerInterval);
+            timerState = 'idle';
+            inspectionStart = 0;
+            currentSolvePenalty = 'OK';
+            let timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.className = 'timer-display';
+                timerEl.innerText = "0.00";
+            }
+            let penaltyBar = document.getElementById('penalty-bar');
+            if (penaltyBar) penaltyBar.style.display = 'none';
+            
+            updateUIForSelectedDate();
+            updateSessionUI();
+            generateScramble();
+        }
+
+        function togglePenalty(type) {
+            if (currentSolves.length === 0) return;
+            let lastIndex = currentSolves.length - 1;
+            let solve = currentSolves[lastIndex];
+
+            if (solve.penalty === type) {
+                solve.penalty = 'OK';
+            } else {
+                solve.penalty = type;
+            }
+
+            let btn2 = document.getElementById('btn-plus2');
+            let btnD = document.getElementById('btn-dnf');
+            if (btn2) btn2.classList.toggle('active', solve.penalty === '+2');
+            if (btnD) btnD.classList.toggle('active', solve.penalty === 'DNF');
+
+            let timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.innerText = formatSolve(solve);
+            updateSessionUI();
+        }
+
+        function startInspection() {
+            timerState = 'inspection';
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.className = 'timer-display inspection';
+                timerEl.innerText = 15;
+            }
+
+            inspectionStart = Date.now();
+            inspectionInterval = setInterval(() => {
+                let elapsed = (Date.now() - inspectionStart) / 1000;
+                let remaining = Math.ceil(15 - elapsed);
+
+                if (timerEl) {
+                    if (elapsed >= 17) {
+                        timerEl.innerText = "DNF";
+                        timerEl.className = "timer-display running";
+                    } else if (elapsed >= 15) {
+                        timerEl.innerText = "+2";
+                        timerEl.className = "timer-display holding";
+                    } else {
+                        timerEl.innerText = remaining > 0 ? remaining : 1;
+                    }
+                }
+            }, 50);
+        }
+
+        function startTimer() {
+            if (inspectionStart > 0) {
+                let inspElapsed = (Date.now() - inspectionStart) / 1000;
+                if (inspElapsed >= 17) {
+                    currentSolvePenalty = 'DNF';
+                } else if (inspElapsed >= 15) {
+                    currentSolvePenalty = '+2';
+                } else {
+                    currentSolvePenalty = 'OK';
+                }
+            } else {
+                currentSolvePenalty = 'OK';
+            }
+
+            clearInterval(inspectionInterval);
+            startTime = Date.now();
+            timerState = 'running';
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.className = 'timer-display running';
+            }
+            let pBar = document.getElementById('penalty-bar');
+            if (pBar) pBar.style.display = 'none';
+
+            timerInterval = setInterval(() => {
+                let elapsed = (Date.now() - startTime) / 1000;
+                if (timerEl) timerEl.innerText = elapsed.toFixed(2);
+            }, 10);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            let elapsed = (Date.now() - startTime) / 1000;
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.className = 'timer-display';
+            timerState = 'idle';
+
+            let newSolve = {
+                rawTime: elapsed,
+                penalty: currentSolvePenalty
+            };
+
+            if (currentSolves.length < 5) {
+                currentSolves.push(newSolve);
+                if (timerEl) timerEl.innerText = formatSolve(newSolve);
+                
+                let pBar = document.getElementById('penalty-bar');
+                if (pBar) pBar.style.display = 'flex';
+                let btn2 = document.getElementById('btn-plus2');
+                let btnD = document.getElementById('btn-dnf');
+                if (btn2) btn2.classList.toggle('active', currentSolvePenalty === '+2');
+                if (btnD) btnD.classList.toggle('active', currentSolvePenalty === 'DNF');
+
+                updateSessionUI();
+                generateScramble();
+            }
+        }
+
+        // ĐẢM BẢO TẤT CẢ HÀM LUÔN CÓ TRÊN WINDOW
+        window.saveToLeaderboard = saveToLeaderboard;
+        window.resetSession = resetSession;
+        window.togglePenalty = togglePenalty;
+        window.onDateChange = onDateChange;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                if (e.target.tagName === 'INPUT') return;
+                e.preventDefault();
+
+                if (!isSelectedToday()) {
+                    alert("Bạn đang ở chế độ xem Bảng Xếp Hạng ngày khác! Chỉ được phép thi đấu trong ngày HÔM NAY.");
+                    return;
+                }
+
+                let activeName = user ? (user.user_metadata?.display_name || user.email?.split('@')[0]) : getLocalFallbackUser();
+                if (!activeName) {
+                    alert("Vui lòng đăng nhập ở trang chính (index.html) trước khi thi!");
+                    return;
+                }
+
+                if (timerState === 'running') {
+                    stopTimer();
+                } else if (timerState === 'idle' && currentSolves.length < 5) {
+                    startInspection();
+                } else if (timerState === 'inspection') {
+                    timerState = 'holding';
+                    let tEl = document.getElementById('timer');
+                    if (tEl) tEl.className = 'timer-display holding';
+                    holdTimeout = setTimeout(() => {
+                        timerState = 'ready';
+                        if (tEl) tEl.className = 'timer-display ready';
+                    }, 300);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                if (e.target.tagName === 'INPUT') return;
+                e.preventDefault();
+
+                if (!isSelectedToday()) return;
+
+                if (timerState === 'holding') {
+                    clearTimeout(holdTimeout);
+                    timerState = 'inspection';
+                    let tEl = document.getElementById('timer');
+                    if (tEl) tEl.className = 'timer-display inspection';
+                } else if (timerState === 'ready') {
+                    startTimer();
+                }
+            }
+        });
+
+        function initApp() {
+            const dateEl = document.getElementById('leaderboard-date');
+            if (dateEl) dateEl.value = getTodayString();
+            
+            const btnSave = document.getElementById('btn-save');
+            const btnReset = document.getElementById('btn-reset');
+            if (btnSave) btnSave.onclick = saveToLeaderboard;
+            if (btnReset) btnReset.onclick = resetSession;
+
+            generateScramble();
+            checkUserSession();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
