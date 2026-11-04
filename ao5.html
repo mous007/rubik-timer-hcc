@@ -71,6 +71,7 @@
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
+            cursor: pointer;
         }
 
         .nav-btn {
@@ -130,7 +131,6 @@
             overflow: hidden;
         }
 
-        /* PANEL TRÁI: THÀNH TÍCH CÁ NHÂN */
         .panel-title {
             margin: 0 0 12px 0;
             font-size: 1.05rem;
@@ -325,7 +325,6 @@
             font-style: italic;
         }
 
-        /* Nút chung */
         .btn {
             background: var(--accent-color);
             color: #0f172a;
@@ -355,10 +354,10 @@
     <header>
         <h1>Rubik Timer HCC</h1>
         <div class="user-nav-group">
-            <span class="user-badge" id="user-display">Chưa đăng nhập</span>
+            <span class="user-badge" id="user-display" onclick="changePlayerName()" title="Nhấn để đổi tên">👤 Đang tải...</span>
             <a href="index.html" class="nav-btn">
-                <span>👤</span> Trang chủ / Tài khoản
-            </a>
+                <span>🏠</span> Trang chủ
+            </a> quét
         </div>
     </header>
 
@@ -443,11 +442,8 @@
                     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
                 });
             }
-        } catch (e) {
-            console.warn("Ngoại tuyến: ", e);
-        }
+        } catch (e) {}
 
-        let user = null;
         let currentSolves = [];
         let timerState = 'idle';
         let inspectionInterval = null;
@@ -460,28 +456,45 @@
         const moves = ["R", "L", "U", "D", "F", "B"];
         const modifiers = ["", "'", "2"];
 
-        function getLinkedAccountFromIndex() {
-            if (user) {
-                const name = user.user_metadata?.display_name || user.email?.split('@')[0] || "Cuber";
-                return { id: user.id, name: name, isAuth: true };
-            }
+        // HÀM NHẬN DIỆN TÊN TÀI KHOẢN THÔNG MINH (Quét toàn bộ LocalStorage)
+        function getPlayerName() {
+            // 1. Kiểm tra nếu đã lưu trực tiếp trong phiên làm việc của timer
+            let timerName = localStorage.getItem('rubik_timer_player_name');
+            if (timerName) return timerName;
 
-            const storageKeys = ['currentUser', 'username', 'rubik_user', 'user', 'account', 'loggedInUser', 'user_account'];
-            for (let key of storageKeys) {
-                let val = localStorage.getItem(key) || sessionStorage.getItem(key);
-                if (val) {
-                    try {
-                        let parsed = JSON.parse(val);
-                        if (typeof parsed === 'object' && parsed !== null) {
-                            let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
-                            if (name) return { id: parsed.id || name, name: name, isAuth: false };
-                        } else if (typeof parsed === 'string' && parsed.trim() !== '') {
-                            return { id: parsed, name: parsed, isAuth: false };
-                        }
-                    } catch (e) {}
+            // 2. Quét tất cả các key có thể chứa tên đăng nhập từ index.html
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const val = localStorage.getItem(key);
+                if (!val) continue;
+
+                try {
+                    let parsed = JSON.parse(val);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        let name = parsed.display_name || parsed.name || parsed.username || parsed.email?.split('@')[0];
+                        if (name) return name;
+                    }
+                } catch (e) {
+                    // Nếu là chuỗi thuần túy và có vẻ hợp lệ làm tên
+                    if (key.toLowerCase().includes('user') || key.toLowerCase().includes('name') || key.toLowerCase().includes('account')) {
+                        if (val.length < 30 && !val.includes('{')) return val;
+                    }
                 }
             }
-            return null;
+
+            // 3. Nếu vẫn không có, tạo tên mặc định và lưu tạm để người dùng có thể đổi
+            let defaultName = "Cuber_" + Math.floor(Math.random() * 900 + 100);
+            localStorage.setItem('rubik_timer_player_name', defaultName);
+            return defaultName;
+        }
+
+        function changePlayerName() {
+            let current = getPlayerName();
+            let newName = prompt("Nhập tên hiển thị của bạn trên Bảng Xếp Hạng:", current);
+            if (newName && newName.trim() !== "") {
+                localStorage.setItem('rubik_timer_player_name', newName.trim());
+                checkUserSession();
+            }
         }
 
         function getAxis(move) {
@@ -524,7 +537,6 @@
             return `${year}-${month}-${day}`;
         }
         
-        // HÀM QUAN TRỌNG: Sửa lỗi Timezone khi lọc dữ liệu Supabase (UTC -> Giờ địa phương)
         function getLocalDateString(dateString) {
             if (!dateString) return "";
             const d = new Date(dateString);
@@ -547,21 +559,12 @@
 
         async function checkUserSession() {
             const userDisplay = document.getElementById('user-display');
+            const playerName = getPlayerName();
 
-            if (client) {
-                try {
-                    const { data } = await client.auth.getSession();
-                    if (data?.session?.user) user = data.session.user;
-                } catch (e) {}
-            }
-
-            const linkedAcc = getLinkedAccountFromIndex();
-            if (linkedAcc) {
-                if (userDisplay) {
-                    userDisplay.innerText = `👤 ${linkedAcc.name}`;
-                    userDisplay.style.borderColor = "var(--accent-color)";
-                    userDisplay.style.color = "var(--accent-color)";
-                }
+            if (userDisplay) {
+                userDisplay.innerText = `👤 ${playerName} (Đổi)`;
+                userDisplay.style.borderColor = "var(--accent-color)";
+                userDisplay.style.color = "var(--accent-color)";
             }
 
             await renderLeaderboard();
@@ -629,22 +632,12 @@
         function updateSaveButtonState() {
             const btnSave = document.getElementById('btn-save');
             const saveMsg = document.getElementById('save-msg');
-            const linkedAcc = getLinkedAccountFromIndex();
 
             if (!isSelectedToday()) {
                 btnSave.disabled = true;
                 btnSave.className = "btn";
                 btnSave.innerText = "Chỉ Xem BXH Cũ";
                 saveMsg.innerText = "Đổi về ngày hôm nay để thi";
-                saveMsg.style.color = "var(--warning-color)";
-                return;
-            }
-
-            if (!linkedAcc) {
-                btnSave.disabled = true;
-                btnSave.className = "btn";
-                btnSave.innerText = "Lưu BXH Hôm Nay";
-                saveMsg.innerText = "Vui lòng đăng nhập ở Trang chủ để thi";
                 saveMsg.style.color = "var(--warning-color)";
                 return;
             }
@@ -658,7 +651,6 @@
                 return;
             }
 
-            // Đã đủ 5 lượt
             btnSave.disabled = false;
             btnSave.className = "btn btn-success";
             btnSave.innerText = "Lưu BXH Hôm Nay";
@@ -679,7 +671,6 @@
                 try {
                     const { data, error } = await client.from(TABLE).select('*').eq('cube_type', '333_ao5').order('created_at', { ascending: true });
                     if (!error && data) {
-                        // FIX TẠI ĐÂY: Dùng getLocalDateString để chuyển đổi ngày UTC sang Local
                         onlineRows = data.filter(row => {
                             if (!row || !row.created_at) return false;
                             return getLocalDateString(row.created_at) === selectedDate;
@@ -722,7 +713,6 @@
                     let details = { solves: ['--', '--', '--', '--', '--'], best: '--' };
                     try { details = JSON.parse(entry.scramble); } catch (e) {}
                     let ao5Str = (entry.penalty === 'DNF' || !entry.solve_time || entry.solve_time >= 9999) ? "DNF" : entry.solve_time.toFixed(2) + "s";
-                    
                     let localTag = entry.is_local ? ' <span style="font-size:0.65rem; color:#64748b">(Offline)</span>' : '';
 
                     tr.innerHTML = `
@@ -744,7 +734,7 @@
         async function saveToLeaderboard() {
             if (currentSolves.length < 5) return;
 
-            const linkedAcc = getLinkedAccountFromIndex();
+            const playerName = getPlayerName();
             const today = getTodayString();
             let ao5 = calculateAo5(currentSolves);
             let bestNumeric = Math.min(...currentSolves.map(s => getNumericValue(s)));
@@ -759,48 +749,48 @@
             btnSave.innerText = "Đang lưu...";
             saveMsg.innerText = "Đang đồng bộ dữ liệu...";
 
-            if (client && user && linkedAcc.isAuth) {
-                const rawMs = typeof ao5 === 'number' ? Math.round(ao5 * 1000) : 99999999;
-                const solveTime = typeof ao5 === 'number' ? ao5 : 99999;
-                const penaltyVal = ao5 === 'DNF' ? 'DNF' : 'OK';
+            if (client) {
+                try {
+                    const rawMs = typeof ao5 === 'number' ? Math.round(ao5 * 1000) : 99999999;
+                    const solveTime = typeof ao5 === 'number' ? ao5 : 99999;
+                    const penaltyVal = ao5 === 'DNF' ? 'DNF' : 'OK';
 
-                const scramblePayload = JSON.stringify({
-                    solves: solveStrings,
-                    best: bestNumeric === Infinity ? "DNF" : bestNumeric.toFixed(2)
-                });
+                    const scramblePayload = JSON.stringify({
+                        solves: solveStrings,
+                        best: bestNumeric === Infinity ? "DNF" : bestNumeric.toFixed(2)
+                    });
 
-                const { error } = await client.from(TABLE).insert({
-                    user_id: user.id,
-                    player_name: linkedAcc.name,
-                    scramble: scramblePayload,
-                    solve_time: solveTime,
-                    raw_ms: rawMs,
-                    penalty: penaltyVal,
-                    cube_type: '333_ao5',
-                    created_at: new Date().toISOString()
-                });
+                    const { error } = await client.from(TABLE).insert({
+                        player_name: playerName,
+                        scramble: scramblePayload,
+                        solve_time: solveTime,
+                        raw_ms: rawMs,
+                        penalty: penaltyVal,
+                        cube_type: '333_ao5',
+                        created_at: new Date().toISOString()
+                    });
 
-                if (!error) isSavedOnline = true;
+                    if (!error) isSavedOnline = true;
+                } catch (e) {}
             }
 
-            if (!isSavedOnline) {
-                let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
-                let existingIndex = localData.findIndex(e => e.name === linkedAcc.name && e.date === today);
-                let newPayload = { name: linkedAcc.name, date: today, solves: solveStrings, best: bestNumeric, ao5: ao5 };
-                
-                if (existingIndex > -1) {
-                    let oldAo5 = localData[existingIndex].ao5;
-                    if (oldAo5 === "DNF" || (ao5 !== "DNF" && ao5 < oldAo5)) {
-                        localData[existingIndex] = newPayload;
-                    }
-                } else {
-                    localData.push(newPayload);
+            // Luôn lưu dự phòng xuống LocalStorage để chắc chắn hiển thị ngay lập tức
+            let localData = JSON.parse(localStorage.getItem('rubik_hcc_leaderboard_daily')) || [];
+            let existingIndex = localData.findIndex(e => e.name === playerName && e.date === today);
+            let newPayload = { name: playerName, date: today, solves: solveStrings, best: bestNumeric, ao5: ao5 };
+            
+            if (existingIndex > -1) {
+                let oldAo5 = localData[existingIndex].ao5;
+                if (oldAo5 === "DNF" || (ao5 !== "DNF" && ao5 < oldAo5)) {
+                    localData[existingIndex] = newPayload;
                 }
-                localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(localData));
+            } else {
+                localData.push(newPayload);
             }
+            localStorage.setItem('rubik_hcc_leaderboard_daily', JSON.stringify(localData));
 
             btnSave.innerText = "Đã Lưu Thành Công";
-            saveMsg.innerText = "Đã lưu kết quả của bạn!";
+            saveMsg.innerText = `Đã lưu kết quả cho [${playerName}]!`;
             saveMsg.style.color = "var(--success-color)";
             
             await renderLeaderboard();
@@ -923,6 +913,7 @@
         window.resetSession = resetSession;
         window.togglePenalty = togglePenalty;
         window.onDateChange = onDateChange;
+        window.changePlayerName = changePlayerName;
 
         window.addEventListener('storage', () => {
             checkUserSession();
